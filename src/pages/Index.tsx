@@ -2,14 +2,22 @@ import { useEffect } from 'react';
 import Navbar from '@/components/ui/navbar';
 import Hero from '@/components/ui/hero';
 import FeaturedCars from '@/components/ui/featured-cars';
-// 1. IMPORTAR EL COMPONENTE CAROUSEL
-import Carousel from './Carousel'; 
+import Carousel from './Carousel';
+
+// ✅ Importar iconos optimizados
+import { Instagram, Facebook, Music2 } from 'lucide-react';
+
+// ✅ Redes sociales con componentes reales
+const socialLinks = [
+  { name: "Instagram", href: "https://www.instagram.com/autospacemexcar/", icon: Instagram },
+  { name: "Facebook", href: "https://www.facebook.com/autospace.mexcar.5", icon: Facebook },
+  { name: "TikTok", href: "https://www.tiktok.com/@autospacemexcar", icon: Music2 },
+];
 
 const Index = () => {
   const currentYear = new Date().getFullYear();
 
   useEffect(() => {
-    // Add fade-in animation to elements on scroll
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -29,81 +37,129 @@ const Index = () => {
       <Navbar />
       <Hero />
       <FeaturedCars />
-      
-      {/* 2. INSERTAR EL CARRUSEL DE MARCAS AQUÍ */}
       <Carousel />
-      
-      {/* Stats Section */}
+
+      {/* Stats */}
       <section className="py-16 bg-secondary/10">
         <div className="container px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-            <div className="fade-in-up">
-              <div className="text-4xl font-bold text-primary mb-2">50+</div>
-              <div className="text-muted-foreground">Autos Disponibles</div>
-            </div>
-            <div className="fade-in-up">
-              <div className="text-4xl font-bold text-primary mb-2">500+</div>
-              <div className="text-muted-foreground">Clientes Satisfechos</div>
-            </div>
-            <div className="fade-in-up">
-              <div className="text-4xl font-bold text-primary mb-2">10+</div>
-              <div className="text-muted-foreground">Años de Experiencia</div>
-            </div>
-            <div className="fade-in-up">
-              <div className="text-4xl font-bold text-primary mb-2">100%</div>
-              <div className="text-muted-foreground">Recomendación</div>
-            </div>
+            {[
+              { number: '50+', label: 'Autos Disponibles' },
+              { number: '500+', label: 'Clientes Satisfechos' },
+              { number: '10+', label: 'Años de Experiencia' },
+              { number: '100%', label: 'Recomendación' }
+            ].map((stat) => (
+              <div key={stat.label} className="fade-in-up">
+                <div className="text-4xl font-bold text-primary mb-2">{stat.number}</div>
+                <div className="text-muted-foreground">{stat.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Footer Section */}
-      <footer className="bg-foreground text-white py-12">
+      {/* Footer */}
+      <footer className="bg-black text-white py-16">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-gray-700 pb-10">
+
+            {/* Columna 1 */}
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <img 
                   src="/MAROS_LOGO_SINFONDO.PNG" 
-                  alt="Autospace Logo" 
-                  className="h-8 md:h-10 w-auto" 
+                  alt="MAROS Logo" 
+                  className="h-10 w-auto" 
                 />
               </div>
-              <p className="text-muted-foreground">
+
+              <p className="text-gray-400 text-sm mt-4">
                 Tu destino para encontrar el auto perfecto con la mejor experiencia de compra.
               </p>
+
+              {/* ✅ Íconos optimizados */}
+              <div className="flex items-center gap-4 mt-6">
+                {socialLinks.map(({ name, href, icon: Icon }) => (
+                  <a
+                    key={name}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={name}
+                    className="group inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/5 hover:bg-primary transition-all"
+                  >
+                    <Icon className="w-5 h-5 text-gray-400 group-hover:text-black transition-colors" />
+                  </a>
+                ))}
+              </div>
             </div>
-            
+
+            {/* Columna 2 */}
             <div>
-              <h3 className="font-semibold mb-4">Enlaces</h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><a href="/catalog" className="hover:text-white transition-colors">Catálogo</a></li>
-                <li><a href="/Sucursales" className="hover:text-white transition-colors">Sucursales</a></li>
+              <h3 className="text-lg font-semibold mb-5 text-white">Explorar</h3>
+              <ul className="space-y-3 text-gray-400 text-sm">
+                <li><a href="/catalog" className="hover:text-primary transition-colors">Catálogo Completo</a></li>
+                <li><a href="/Sucursales" className="hover:text-primary transition-colors">Nuestras Sucursales</a></li>
+                <li><a href="/" className="hover:text-primary transition-colors">Inicio</a></li>
+              </ul>
+
+              <div className="mt-8">
+                <a 
+                  href="/catalog" 
+                  className="inline-block px-4 py-2 text-sm font-medium text-black bg-primary rounded-md hover:bg-primary/90 transition-colors"
+                >
+                  Ver Inventario Hoy
+                </a>
+              </div>
+            </div>
+
+            {/* Columna 3 */}
+            <div>
+              <h3 className="text-lg font-semibold mb-5 text-white">Información</h3>
+              <ul className="space-y-3 text-gray-400 text-sm">
+                <li className="flex flex-col">
+                  <span className="font-semibold text-gray-300">Sucursal Tlalnepantla</span>
+                  <a href="tel:+525529310292" className="hover:text-primary transition-colors">
+                    +52 55 2931 0292
+                  </a>
+                  <span className="text-xs pt-1">
+                    Dirección: Av. Principal #123, Tlalnepantla
+                  </span>
+                </li>
+                <li className="flex flex-col pt-3">
+                  <span className="font-semibold text-gray-300">Horario</span>
+                  <span>Lun - Dom: 10:00 - 18:00</span>
+                </li>
               </ul>
             </div>
-            
+
+            {/* Columna 4 */}
             <div>
-              <h3 className="font-semibold mb-4">Contacto</h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li>
-                  <span className="font-bold">Sucursal Tlalnepantla:</span> +52 55 2931 0292
-                </li>
-                <li>
-                  <span className="font-bold">Sucursal Cancún:</span> +52 998 234 5678
-                </li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Horarios</h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><span className="font-bold">Tlalnepantla:</span> Lun - Dom: 10:00 - 18:00</li>
-                <li><span className="font-bold">Cancún:</span> Lun - Dom: 10:00 - 18:00</li>
+              <h3 className="text-lg font-semibold mb-5 text-white">Ubicación y Legal</h3>
+
+              <div className="mb-6 h-32 w-full bg-gray-800 rounded overflow-hidden">
+                <iframe 
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3759.530060164913!2d-99.1999519247823!3d19.56177918174536!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d21d7b10e4288b%3A0xef64360ecc31296c!2sAuto%20Space!5e0!3m2!1ses-419!2smx!4v1757282118142!5m2!1ses-419!2smx"
+                  width="100%" 
+                  height="100%" 
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Ubicación de Sucursal Tlalnepantla"
+                />
+              </div>
+
+              <ul className="space-y-3 text-gray-400 text-sm">
+                <li><a href="/legal/privacy" className="hover:text-primary transition-colors">Aviso de Privacidad</a></li>
+                <li><a href="/legal/terms" className="hover:text-primary transition-colors">Términos y Condiciones</a></li>
+                <li><a href="/sitemap" className="hover:text-primary transition-colors">Mapa del Sitio</a></li>
               </ul>
             </div>
           </div>
-          
-          <div className="border-t border-muted mt-8 pt-8 text-center text-muted-foreground">
+
+          {/* Footer final */}
+          <div className="mt-10 text-center text-gray-500 text-sm">
             <p>&copy; {currentYear} MAROS Technology. Todos los derechos reservados.</p>
           </div>
         </div>

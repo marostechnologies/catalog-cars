@@ -29,10 +29,10 @@ const sucursalNumbers = {
     phone: '+525529310292',
     whatsapp: '525529310292',
   },
-  'Sucursal Cancún': {
+  /*'Sucursal Cancún': {
     phone: '+529982345678',
     whatsapp: '529982345678',
-  },
+  },*/
   // Agrega más sucursales aquí si es necesario
 };
 
@@ -515,14 +515,14 @@ Me gustaría una cotización formal.
                 <h3 className="font-semibold">Sucursales:</h3>
                 <ul className="list-disc list-inside">
                   <li>Tlalnepantla: +52 55 2931 0292</li>
-                  <li>Cancún: +52 998 234 5678</li>
+                  {/*<li>Cancún: +52 998 234 5678</li>*/}
                 </ul>
               </div>
               <div>
                 <h3 className="font-semibold">Horarios:</h3>
                 <ul className="list-disc list-inside">
                   <li>Tlalnepantla: Lun - Dom: 10:00 - 18:00</li>
-                  <li>Cancún: Lun - Dom: 10:00 - 18:00</li>
+                  {/*<li>Cancún: Lun - Dom: 10:00 - 18:00</li>*/}
                 </ul>
               </div>
               <Button className="w-full" onClick={() => setContactOpen(false)}>Cerrar</Button>

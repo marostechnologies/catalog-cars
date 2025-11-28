@@ -30,7 +30,7 @@ type Car = {
   color?: string;
   condition?: string;
   description?: string;
-  sucursal?: string;
+  // sucursal?: string; // Eliminado
 };
 
 type CarImage = {
@@ -51,7 +51,7 @@ type UserProfile = {
 const fuelTypes = ["Gasolina", "Diesel", "Eléctrico", "Híbrido"];
 const transmissions = ["Manual", "Automático"];
 const conditions = ["nuevo", "seminuevo", "usado"];
-const sucursales = ["Sucursal Cancún", "Sucursal Tlalnepantla", "Sucursal del Valle"];
+// const sucursales = ["Sucursal Cancún", "Sucursal Tlalnepantla", "Sucursal del Valle"]; // Eliminado
 
 const AdminCars = () => {
   const [userRole, setUserRole] = useState<string>("");
@@ -96,7 +96,7 @@ const AdminCars = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("cars")
-      .select("id, brand, model, year, price, sucursal")
+      .select("id, brand, model, year, price") // sucursal eliminado de select
       .order("created_at", { ascending: false });
 
     if (error) toast.error("Error cargando autos");
@@ -147,7 +147,7 @@ const AdminCars = () => {
       color: form.color || null,
       condition: form.condition || null,
       description: form.description || null,
-      sucursal: form.sucursal || null,
+      // sucursal: form.sucursal || null, // Eliminado
     };
 
     if (editingCar) {
@@ -264,8 +264,8 @@ const AdminCars = () => {
   const filteredCars = cars.filter(
     (car) =>
       car.brand.toLowerCase().includes(search.toLowerCase()) ||
-      car.model.toLowerCase().includes(search.toLowerCase()) ||
-      car.sucursal?.toLowerCase().includes(search.toLowerCase())
+      car.model.toLowerCase().includes(search.toLowerCase())
+      // Eliminado el filtro por sucursal
   );
 
   if (loadingUser) return <p className="p-6">Cargando usuario...</p>;
@@ -341,7 +341,7 @@ const AdminCars = () => {
       {view === "list" && (
         <>
           <Input
-            placeholder="Buscar por marca, modelo o sucursal..."
+            placeholder="Buscar por marca o modelo..." // Modificado el placeholder
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full"
@@ -361,9 +361,7 @@ const AdminCars = () => {
                     <p className="text-sm sm:text-base">
                       <strong>Precio:</strong> ${car.price}
                     </p>
-                    <p className="text-sm sm:text-base">
-                      <strong>Sucursal:</strong> {car.sucursal || "N/A"}
-                    </p>
+                    {/* Eliminada la visualización de la sucursal */}
                     <div className="flex flex-col sm:flex-row gap-2 mt-4">
                       <Button
                         size="sm"
@@ -437,21 +435,7 @@ const AdminCars = () => {
               className="w-full"
             />
           </div>
-          <Select
-            value={form.sucursal || ""}
-            onValueChange={(v) => setForm({ ...form, sucursal: v })}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Seleccionar Sucursal" />
-            </SelectTrigger>
-            <SelectContent>
-              {sucursales.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {s}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Eliminado el Select de Sucursal */}
           <Select
             value={form.fuel_type || ""}
             onValueChange={(v) => setForm({ ...form, fuel_type: v })}
