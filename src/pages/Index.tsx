@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import Navbar from '@/components/ui/navbar';
 import Hero from '@/components/ui/hero';
 import FeaturedCars from '@/components/ui/featured-cars';
+// 1. IMPORTAR EL COMPONENTE CAROUSEL
+import Carousel from './Carousel'; 
 
 const Index = () => {
   const currentYear = new Date().getFullYear();
@@ -27,6 +29,9 @@ const Index = () => {
       <Navbar />
       <Hero />
       <FeaturedCars />
+      
+      {/* 2. INSERTAR EL CARRUSEL DE MARCAS AQUÍ */}
+      <Carousel />
       
       {/* Stats Section */}
       <section className="py-16 bg-secondary/10">
