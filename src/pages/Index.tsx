@@ -59,7 +59,7 @@ const Index = () => {
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <img 
-                  src="/autospace_logo.png" 
+                  src="/MAROS_LOGO_SINFONDO.PNG" 
                   alt="Autospace Logo" 
                   className="h-8 md:h-10 w-auto" 
                 />
@@ -99,7 +99,7 @@ const Index = () => {
           </div>
           
           <div className="border-t border-muted mt-8 pt-8 text-center text-muted-foreground">
-            <p>&copy; {currentYear} Autospace. Todos los derechos reservados.</p>
+            <p>&copy; {currentYear} MAROS Technology. Todos los derechos reservados.</p>
           </div>
         </div>
       </footer>

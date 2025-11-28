@@ -16,12 +16,7 @@ const sucursales = [
     nombre: "Autospace Tlalnepantla - Estado de México",
     telefono: "+52 55 2931 0292",
     horario: "Lunes a Sábado: 9:00 AM - 6:00 PM",
-  },
-  {
-    nombre: "Autospace del Caribe - Cancún",
-    telefono: "+52 998 234 5678",
-    horario: "Lunes a Domingo: 9:00 AM - 6:00 PM",
-  },
+  }
 ];
 
 const socialLinks = [
@@ -106,7 +101,7 @@ const Navbar = () => {
               onClick={() => navigate('/')}
             >
               <img 
-                src="/autospace_logo.png" 
+                src="/MAROS_LOGO_SINFONDO.PNG" 
                 alt="Autospace Logo" 
                 className="h-8 md:h-10 w-auto"
               />

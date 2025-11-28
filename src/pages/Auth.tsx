@@ -79,7 +79,7 @@ const Auth = () => {
         }
         return;
       }
-      toast.success('¡Bienvenido a Autospace!');
+      toast.success('¡Bienvenido a MAROS Technology!');
       navigate(redirect);
     } catch (error: any) {
       toast.error(`Error inesperado: ${error.message}`);
@@ -281,7 +281,7 @@ const Auth = () => {
         <Card className="w-full max-w-md bg-black/70 backdrop-blur-md rounded-3xl shadow-2xl border border-gray-700 overflow-hidden animate-fade-in-up">
           <CardHeader className="text-center p-8 bg-transparent text-white border-b border-gray-700">
             <div className="flex items-center justify-center mb-2">
-              <img src="/autospace_logo.png" alt="Autospace Logo" className="h-16 w-auto drop-shadow-md" />
+              <img src="/MAROS_LOGO_SINFONDO.PNG" alt="Autospace Logo" className="h-16 w-auto drop-shadow-md" />
             </div>
             <CardTitle className="text-4xl font-extrabold tracking-tight text-white">Bienvenido</CardTitle>
             <CardDescription className="text-gray-300 mt-2">
