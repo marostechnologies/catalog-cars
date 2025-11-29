@@ -5,7 +5,7 @@ import FeaturedCars from '@/components/ui/featured-cars';
 import Carousel from './Carousel';
 
 // ✅ Importar iconos optimizados
-import { Instagram, Facebook, Music2 } from 'lucide-react';
+import { Instagram, Facebook, Music2, CheckCircle, Handshake, Shield } from 'lucide-react';
 
 // ✅ Redes sociales con componentes reales
 const socialLinks = [
@@ -58,12 +58,12 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Footer */}
+      {/* Footer - ESTRUCTURA FINAL CON MAPA MINIMALISTA */}
       <footer className="bg-black text-white py-16">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-gray-700 pb-10">
 
-            {/* Columna 1 */}
+            {/* Columna 1: Logo y Redes Sociales */}
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <img 
@@ -77,7 +77,7 @@ const Index = () => {
                 Tu destino para encontrar el auto perfecto con la mejor experiencia de compra.
               </p>
 
-              {/* ✅ Íconos optimizados */}
+              {/* Íconos optimizados y estilizados */}
               <div className="flex items-center gap-4 mt-6">
                 {socialLinks.map(({ name, href, icon: Icon }) => (
                   <a
@@ -94,26 +94,29 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Columna 2 */}
+            {/* Columna 2: Enfocada en la Venta y Transparencia */}
             <div>
-              <h3 className="text-lg font-semibold mb-5 text-white">Explorar</h3>
+              <h3 className="text-lg font-semibold mb-5 text-white">Transparencia</h3>
               <ul className="space-y-3 text-gray-400 text-sm">
-                <li><a href="/catalog" className="hover:text-primary transition-colors">Catálogo Completo</a></li>
-                <li><a href="/Sucursales" className="hover:text-primary transition-colors">Nuestras Sucursales</a></li>
-                <li><a href="/" className="hover:text-primary transition-colors">Inicio</a></li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-primary" />
+                  Garantía de Documentos
+                </li>
+                <li className="flex items-center gap-2">
+                  <Handshake className="w-4 h-4 text-primary" />
+                  Planes de Financiamiento
+                </li>
+                <li className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-primary" />
+                  Seguro y Asesoría Legal
+                </li>
               </ul>
 
               <div className="mt-8">
-                <a 
-                  href="/catalog" 
-                  className="inline-block px-4 py-2 text-sm font-medium text-black bg-primary rounded-md hover:bg-primary/90 transition-colors"
-                >
-                  Ver Inventario Hoy
-                </a>
               </div>
             </div>
 
-            {/* Columna 3 */}
+            {/* Columna 3: Información de Contacto */}
             <div>
               <h3 className="text-lg font-semibold mb-5 text-white">Información</h3>
               <ul className="space-y-3 text-gray-400 text-sm">
@@ -123,7 +126,7 @@ const Index = () => {
                     +52 55 2931 0292
                   </a>
                   <span className="text-xs pt-1">
-                    Dirección: Av. Principal #123, Tlalnepantla
+                    Dirección: C. Augustin Melgar 23, Niños Heroes, 54017 Tlalnepantla, Méx.
                   </span>
                 </li>
                 <li className="flex flex-col pt-3">
@@ -133,9 +136,9 @@ const Index = () => {
               </ul>
             </div>
 
-            {/* Columna 4 */}
+            {/* Columna 4: Solo Ubicación/Mapa */}
             <div>
-              <h3 className="text-lg font-semibold mb-5 text-white">Ubicación y Legal</h3>
+              <h3 className="text-lg font-semibold mb-5 text-white">Ubicación</h3>
 
               <div className="mb-6 h-32 w-full bg-gray-800 rounded overflow-hidden">
                 <iframe 
@@ -149,18 +152,14 @@ const Index = () => {
                   title="Ubicación de Sucursal Tlalnepantla"
                 />
               </div>
-
-              <ul className="space-y-3 text-gray-400 text-sm">
-                <li><a href="/legal/privacy" className="hover:text-primary transition-colors">Aviso de Privacidad</a></li>
-                <li><a href="/legal/terms" className="hover:text-primary transition-colors">Términos y Condiciones</a></li>
-                <li><a href="/sitemap" className="hover:text-primary transition-colors">Mapa del Sitio</a></li>
-              </ul>
+              
+              {/* Eliminado el <ul> con las preguntas clave */}
             </div>
           </div>
 
           {/* Footer final */}
           <div className="mt-10 text-center text-gray-500 text-sm">
-            <p>&copy; {currentYear} MAROS Technology. Todos los derechos reservados.</p>
+            <p>© {currentYear} MAROS Technology. Todos los derechos reservados.</p>
           </div>
         </div>
       </footer>

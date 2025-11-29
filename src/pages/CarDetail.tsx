@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft, Phone, MessageCircle, Calendar,
-  Gauge, Fuel, Cog, MapPin, ChevronLeft, ChevronRight, X, Droplet
+  Gauge, Fuel, Cog, MapPin, ChevronLeft, ChevronRight, X, Droplet, Store
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,13 +18,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Database } from '@/integrations/supabase/types';
 
-// Actualizar el tipo para incluir el array de imágenes
-type Car = Database['public']['Tables']['cars']['Row'] & {
+// =======================================================
+// 1. ACTUALIZACIÓN DEL TIPO CAR (Añadir 'agency' y 'agency_phone')
+// =======================================================
+type CarRow = Database['public']['Tables']['cars']['Row'];
+type Car = CarRow & {
+  agency: string | null; // Renombrado de 'sucursal' a 'agency'
+  agency_phone: string | null; // Nueva columna
   car_images?: Database['public']['Tables']['car_images']['Row'][];
 };
 
-// Define los números de teléfono por sucursal
-const sucursalNumbers = {
+// =======================================================
+// 2. RENOMBRAR MAPA DE CONTACTO (de sucursalNumbers a agencyNumbers)
+// Se mantiene la misma estructura para la lógica de los botones de contacto
+// =======================================================
+const agencyNumbers = {
   'Sucursal Tlalnepantla': {
     phone: '+525529310292',
     whatsapp: '525529310292',
@@ -33,7 +41,7 @@ const sucursalNumbers = {
     phone: '+529982345678',
     whatsapp: '529982345678',
   },*/
-  // Agrega más sucursales aquí si es necesario
+  // Agrega más agencias aquí si es necesario
 };
 
 const CarDetail = () => {
@@ -86,6 +94,7 @@ const CarDetail = () => {
       }
 
       if (carData) {
+        // La consulta trae agency y agency_phone automáticamente debido al '*'
         const formattedCar = {
           ...carData,
           car_images: (carData.car_images as any) || [],
@@ -209,40 +218,44 @@ const CarDetail = () => {
     }
   };
 
-  // ==================== FUNCIONES PARA BOTONES DE CONTACTO ====================
+  // ==================== FUNCIONES PARA BOTONES DE CONTACTO - ACTUALIZADAS ====================
+  // NOTA: Se sigue usando el mapa agencyNumbers para la lógica de los botones de contacto
+  // y se asume que 'car.agency' reemplazó a 'car.sucursal'
   const handleWhatsApp = () => {
-    if (!car?.sucursal || !sucursalNumbers[car.sucursal]?.whatsapp) {
-      toast.error('Número de WhatsApp no disponible para esta sucursal.');
+    if (!car?.agency || !agencyNumbers[car.agency]?.whatsapp) {
+      toast.error('Número de WhatsApp no disponible para esta agencia.');
       return;
     }
-    const whatsappNumber = sucursalNumbers[car.sucursal].whatsapp;
+    const whatsappNumber = agencyNumbers[car.agency].whatsapp;
     const message = `Hola, estoy interesado en el auto ${car.brand} ${car.model} (${car.year}) que vi en su sitio web.`;
     window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   const handleCall = () => {
-    if (!car?.sucursal || !sucursalNumbers[car.sucursal]?.phone) {
-      toast.error('Número de teléfono no disponible para esta sucursal.');
+    // Si el auto tiene agency_phone, lo usamos, si no, intentamos el mapa
+    const phoneNumber = car?.agency_phone || (car?.agency ? agencyNumbers[car.agency]?.phone : null);
+
+    if (!phoneNumber) {
+      toast.error('Número de teléfono no disponible para esta agencia.');
       return;
     }
     setIsCallModalOpen(true); // Abre el modal de confirmación
   };
 
   const confirmCall = () => {
-    if (car?.sucursal && sucursalNumbers[car.sucursal]?.phone) {
-      const phoneNumber = sucursalNumbers[car.sucursal].phone;
+    const phoneNumber = car?.agency_phone || (car?.agency ? agencyNumbers[car.agency]?.phone : null);
+    if (phoneNumber) {
       window.location.href = `tel:${phoneNumber}`;
       setIsCallModalOpen(false); // Cierra el modal después de iniciar la llamada
     }
   };
 
-  // Nueva función para el botón de cotización
   const handleWhatsappQuote = () => {
-    if (!car || !car.sucursal || !sucursalNumbers[car.sucursal]?.whatsapp || !monthlyPayment || !downPayment || !months) {
+    if (!car || !car.agency || !agencyNumbers[car.agency]?.whatsapp || !monthlyPayment || !downPayment || !months) {
       toast.error('Información incompleta para generar la cotización.');
       return;
     }
-    const whatsappNumber = sucursalNumbers[car.sucursal].whatsapp;
+    const whatsappNumber = agencyNumbers[car.agency].whatsapp;
     const message = `Hola, estoy interesado en el auto ${car.brand} ${car.model} (${car.year}).
 Me gustaría una cotización formal.
 ---
@@ -423,12 +436,25 @@ Me gustaría una cotización formal.
                     <Droplet className="h-4 w-4 text-primary" />
                     <span className="text-sm capitalize">Color: {car.color}</span>
                   </div>
-                  {car.sucursal && (
+                  
+                  {/* ============================================== */}
+                  {/* 3. INSERCIÓN DE AGENCY Y AGENCY_PHONE */}
+                  {/* ============================================== */}
+                  {car.agency && (
                     <div className="flex items-center space-x-2">
-                      <MapPin className="h-4 w-4 text-primary" />
-                      <span className="text-sm">Sucursal: {car.sucursal}</span>
+                      <Store className="h-4 w-4 text-primary" /> {/* Icono de tienda/agencia */}
+                      <span className="text-sm">Agencia: {car.agency}</span>
                     </div>
                   )}
+
+                  {car.agency_phone && (
+                    <div className="flex items-center space-x-2">
+                      <Phone className="h-4 w-4 text-primary" />
+                      <span className="text-sm">Tel. Agencia: <a href={`tel:${car.agency_phone}`} className="hover:underline">{car.agency_phone}</a></span>
+                    </div>
+                  )}
+                  {/* Fin de inserción */}
+                  {/* Se elimina la referencia a 'car.sucursal' */}
                 </div>
               </CardContent>
             </Card>
@@ -504,7 +530,7 @@ Me gustaría una cotización formal.
           </motion.div>
         </div>
 
-        {/* Modal de Contacto (movido para mejor organización) */}
+        {/* Modal de Contacto (Actualizado para usar Agencia) */}
         <Dialog open={contactOpen} onOpenChange={setContactOpen}>
           <DialogContent>
             <DialogHeader>
@@ -512,10 +538,10 @@ Me gustaría una cotización formal.
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <h3 className="font-semibold">Sucursales:</h3>
+                <h3 className="font-semibold">Agencias:</h3>
                 <ul className="list-disc list-inside">
-                  <li>Tlalnepantla: +52 55 2931 0292</li>
-                  {/*<li>Cancún: +52 998 234 5678</li>*/}
+                  <li>Tlalnepantla: {agencyNumbers['Sucursal Tlalnepantla'].phone}</li>
+                  {/*<li>Cancún: {agencyNumbers['Sucursal Cancún'].phone}</li>*/}
                 </ul>
               </div>
               <div>
@@ -632,13 +658,13 @@ Me gustaría una cotización formal.
         </Dialog>
 
 
-        {/* === NUEVO: MODAL DE CONFIRMACIÓN DE LLAMADA === */}
+        {/* === MODAL DE CONFIRMACIÓN DE LLAMADA (Actualizado para usar Agency) === */}
         <Dialog open={isCallModalOpen} onOpenChange={setIsCallModalOpen}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>¿Seguro que quieres llamar?</DialogTitle>
               <DialogDescription>
-                Vas a llamar a la sucursal de {car?.sucursal}.
+                Vas a llamar a la agencia {car?.agency || car?.agency_phone}.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="sm:justify-start">

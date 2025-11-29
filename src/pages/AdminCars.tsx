@@ -18,6 +18,9 @@ import {
 import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
+// =======================================================
+// 1. ACTUALIZACIÓN DEL TIPO CAR (Añadir 'agency' y 'agency_phone')
+// =======================================================
 type Car = {
   id: string;
   brand: string;
@@ -30,7 +33,8 @@ type Car = {
   color?: string;
   condition?: string;
   description?: string;
-  // sucursal?: string; // Eliminado
+  agency?: string; // Nuevo campo
+  agency_phone?: string; // Nuevo campo
 };
 
 type CarImage = {
@@ -51,7 +55,6 @@ type UserProfile = {
 const fuelTypes = ["Gasolina", "Diesel", "Eléctrico", "Híbrido"];
 const transmissions = ["Manual", "Automático"];
 const conditions = ["nuevo", "seminuevo", "usado"];
-// const sucursales = ["Sucursal Cancún", "Sucursal Tlalnepantla", "Sucursal del Valle"]; // Eliminado
 
 const AdminCars = () => {
   const [userRole, setUserRole] = useState<string>("");
@@ -94,9 +97,10 @@ const AdminCars = () => {
 
   const fetchCars = async () => {
     setLoading(true);
+    // Aseguramos que se seleccionen los nuevos campos para la lista si fueran necesarios
     const { data, error } = await supabase
       .from("cars")
-      .select("id, brand, model, year, price") // sucursal eliminado de select
+      .select("id, brand, model, year, price, agency, agency_phone") 
       .order("created_at", { ascending: false });
 
     if (error) toast.error("Error cargando autos");
@@ -135,6 +139,9 @@ const AdminCars = () => {
     setLoading(false);
   };
 
+  // =======================================================
+  // 3. ACTUALIZACIÓN DE LA LÓGICA DE GUARDADO (handleSave)
+  // =======================================================
   const handleSave = async () => {
     const payload = {
       brand: form.brand || null,
@@ -147,7 +154,8 @@ const AdminCars = () => {
       color: form.color || null,
       condition: form.condition || null,
       description: form.description || null,
-      // sucursal: form.sucursal || null, // Eliminado
+      agency: form.agency || null, // Guardar Agencia
+      agency_phone: form.agency_phone || null, // Guardar Número Telefónico
     };
 
     if (editingCar) {
@@ -173,7 +181,8 @@ const AdminCars = () => {
         toast.error(`Error al crear auto: ${error?.message}`);
       } else {
         toast.success("Auto creado");
-        setEditingCar(newCar);
+        // Aseguramos que newCar sea del tipo correcto para setEditingCar
+        setEditingCar(newCar as Car); 
         setView("form");
         setImages([]);
       }
@@ -264,8 +273,8 @@ const AdminCars = () => {
   const filteredCars = cars.filter(
     (car) =>
       car.brand.toLowerCase().includes(search.toLowerCase()) ||
-      car.model.toLowerCase().includes(search.toLowerCase())
-      // Eliminado el filtro por sucursal
+      car.model.toLowerCase().includes(search.toLowerCase()) ||
+      car.agency?.toLowerCase().includes(search.toLowerCase()) // Nuevo filtro por Agencia
   );
 
   if (loadingUser) return <p className="p-6">Cargando usuario...</p>;
@@ -341,7 +350,7 @@ const AdminCars = () => {
       {view === "list" && (
         <>
           <Input
-            placeholder="Buscar por marca o modelo..." // Modificado el placeholder
+            placeholder="Buscar por marca, modelo o agencia..." // Modificado el placeholder
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full"
@@ -361,7 +370,11 @@ const AdminCars = () => {
                     <p className="text-sm sm:text-base">
                       <strong>Precio:</strong> ${car.price}
                     </p>
-                    {/* Eliminada la visualización de la sucursal */}
+                    {car.agency && (
+                       <p className="text-sm sm:text-base">
+                        <strong>Agencia:</strong> {car.agency}
+                      </p>
+                    )}
                     <div className="flex flex-col sm:flex-row gap-2 mt-4">
                       <Button
                         size="sm"
@@ -387,6 +400,9 @@ const AdminCars = () => {
         </>
       )}
 
+      {/* =======================================================
+      2. FORMULARIO DE ENTRADA (Añadir campos de Agencia y Teléfono)
+      ======================================================= */}
       {view === "form" && (
         <div className="space-y-4">
           <h2 className="text-xl sm:text-2xl font-bold">
@@ -434,8 +450,21 @@ const AdminCars = () => {
               onChange={(e) => setForm({ ...form, color: e.target.value })}
               className="w-full"
             />
+            {/* NUEVO CAMPO: Agencia */}
+            <Input
+              placeholder="Agencia"
+              value={form.agency || ""}
+              onChange={(e) => setForm({ ...form, agency: e.target.value })}
+              className="w-full"
+            />
+            {/* NUEVO CAMPO: Número Telefónico */}
+            <Input
+              placeholder="Número Telefónico (Agencia)"
+              value={form.agency_phone || ""}
+              onChange={(e) => setForm({ ...form, agency_phone: e.target.value })}
+              className="w-full"
+            />
           </div>
-          {/* Eliminado el Select de Sucursal */}
           <Select
             value={form.fuel_type || ""}
             onValueChange={(v) => setForm({ ...form, fuel_type: v })}

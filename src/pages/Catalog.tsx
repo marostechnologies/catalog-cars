@@ -29,21 +29,18 @@ const Catalog = () => {
   const modelParam = queryParams.get('model') || '';
   const yearParam = queryParams.get('year') || '';
   const maxPriceParam = queryParams.get('maxPrice') || '';
-  const sucursalParam = queryParams.get('sucursal') || '';
 
   // filtros del navbar
   const [selectedBrand, setSelectedBrand] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedMaxPrice, setSelectedMaxPrice] = useState('');
-  const [selectedSucursal, setSelectedSucursal] = useState('');
   const [selectedFuel, setSelectedFuel] = useState('');
   const [selectedTransmission, setSelectedTransmission] = useState('');
   const [selectedCondition, setSelectedCondition] = useState('');
 
   const [brands, setBrands] = useState<string[]>([]);
   const [years, setYears] = useState<number[]>([]);
-  const [sucursales, setSucursales] = useState<string[]>([]);
   const [fuels] = useState(['Gasolina', 'Diesel', 'Eléctrico', 'Híbrido']);
   const [transmissions] = useState(['Manual', 'Automático']);
   const [conditions] = useState(['Nuevo', 'Usado']);
@@ -52,7 +49,7 @@ const Catalog = () => {
     fetchFilterOptions();
     fetchFavorites();
 
-    if (brandParam || modelParam || yearParam || maxPriceParam || sucursalParam) {
+    if (brandParam || modelParam || yearParam || maxPriceParam) {
       handleSearchFromHero();
     } else {
       fetchAllCars();
@@ -63,8 +60,9 @@ const Catalog = () => {
     try {
       const { data, error } = await supabase
         .from('cars')
-        .select('brand,year,sucursal')
+        .select('brand,year')
         .eq('is_active', true);
+
       if (error) throw error;
 
       const uniqueBrands = Array.from(new Set(data.map((item: any) => item.brand)));
@@ -72,14 +70,6 @@ const Catalog = () => {
 
       const uniqueYears = Array.from(new Set(data.map((item: any) => item.year))).sort((a, b) => b - a);
       setYears(uniqueYears);
-
-      // Código modificado aquí para garantizar valores únicos y limpios de sucursales
-      const uniqueSucursales = Array.from(new Set(
-          data
-            .map((item: any) => (item.sucursal ? item.sucursal.trim() : null))
-            .filter(Boolean)
-      )).sort();
-      setSucursales(uniqueSucursales);
 
     } catch (error) {
       console.error('Error fetching filter options:', error);
@@ -105,6 +95,7 @@ const Catalog = () => {
         .select(`*, car_images(id, image_url, is_primary)`)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
+
       if (error) throw error;
       setCars(data || []);
     } catch (error) {
@@ -127,10 +118,10 @@ const Catalog = () => {
       if (modelParam) query = query.ilike('model', `%${modelParam}%`);
       if (yearParam) query = query.eq('year', parseInt(yearParam));
       if (maxPriceParam) query = query.lte('price', parseInt(maxPriceParam));
-      if (sucursalParam) query = query.ilike('sucursal', sucursalParam);
 
       const { data, error } = await query.order('created_at', { ascending: false });
       if (error) throw error;
+
       setCars(data || []);
     } catch (error) {
       console.error('Error fetching cars:', error);
@@ -152,13 +143,13 @@ const Catalog = () => {
       if (selectedModel) query = query.ilike('model', `%${selectedModel}%`);
       if (selectedYear) query = query.eq('year', parseInt(selectedYear));
       if (selectedMaxPrice) query = query.lte('price', parseInt(selectedMaxPrice));
-      if (selectedSucursal) query = query.ilike('sucursal', selectedSucursal);
       if (selectedFuel) query = query.eq('fuel_type', selectedFuel);
       if (selectedTransmission) query = query.eq('transmission', selectedTransmission);
       if (selectedCondition) query = query.eq('condition', selectedCondition);
 
       const { data, error } = await query.order('created_at', { ascending: false });
       if (error) throw error;
+
       setCars(data || []);
     } catch (error) {
       console.error('Error fetching cars:', error);
@@ -176,18 +167,21 @@ const Catalog = () => {
     }
     try {
       const isFavorite = favorites.includes(carId);
+
       if (isFavorite) {
         const { error } = await supabase
           .from('favorites')
           .delete()
           .eq('user_id', user.id)
           .eq('car_id', carId);
+
         if (error) throw error;
         setFavorites(prev => prev.filter(id => id !== carId));
         toast.success('Eliminado de favoritos');
       } else {
         const { error } = await supabase.from('favorites').insert([{ user_id: user.id, car_id: carId }]);
         if (error) throw error;
+
         setFavorites(prev => [...prev, carId]);
         toast.success('Agregado a favoritos');
       }
@@ -202,7 +196,6 @@ const Catalog = () => {
     setSelectedModel('');
     setSelectedYear('');
     setSelectedMaxPrice('');
-    setSelectedSucursal('');
     setSelectedFuel('');
     setSelectedTransmission('');
     setSelectedCondition('');
@@ -233,34 +226,42 @@ const Catalog = () => {
         </div>
       </section>
 
-      {/* Barra de filtros normal, debajo del navbar */}
+      {/* Barra de filtros */}
       <section className="w-full bg-white border-b shadow-md">
         <div className="container px-4 py-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
-          {/* Marca */}
           <Select value={selectedBrand} onValueChange={setSelectedBrand}>
             <SelectTrigger className="rounded-xl shadow-sm"><SelectValue placeholder="Marca" /></SelectTrigger>
-            <SelectContent>{brands.map(brand => <SelectItem key={brand} value={brand}>{brand}</SelectItem>)}</SelectContent>
+            <SelectContent>
+              {brands.map(brand => (
+                <SelectItem key={brand} value={brand}>{brand}</SelectItem>
+              ))}
+            </SelectContent>
           </Select>
 
-          {/* Modelo */}
-          <Input placeholder="Modelo" value={selectedModel} onChange={e => setSelectedModel(e.target.value)} className="rounded-xl shadow-sm" />
+          <Input
+            placeholder="Modelo"
+            value={selectedModel}
+            onChange={e => setSelectedModel(e.target.value)}
+            className="rounded-xl shadow-sm"
+          />
 
-          {/* Año */}
           <Select value={selectedYear} onValueChange={setSelectedYear}>
             <SelectTrigger className="rounded-xl shadow-sm"><SelectValue placeholder="Año" /></SelectTrigger>
-            <SelectContent>{years.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent>
+            <SelectContent>
+              {years.map(y => (
+                <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+              ))}
+            </SelectContent>
           </Select>
 
-          {/* Precio */}
-          <Input placeholder="Precio máximo" type="number" value={selectedMaxPrice} onChange={e => setSelectedMaxPrice(e.target.value)} className="rounded-xl shadow-sm" />
+          <Input
+            placeholder="Precio máximo"
+            type="number"
+            value={selectedMaxPrice}
+            onChange={e => setSelectedMaxPrice(e.target.value)}
+            className="rounded-xl shadow-sm"
+          />
 
-          {/* Sucursal */}
-          <Select value={selectedSucursal} onValueChange={setSelectedSucursal}>
-            <SelectTrigger className="rounded-xl shadow-sm"><SelectValue placeholder="Sucursal" /></SelectTrigger>
-            <SelectContent>{sucursales.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-          </Select>
-
-          {/* Botones */}
           <div className="flex gap-3 sm:col-span-2 lg:col-span-2">
             <Button className="flex-1 rounded-xl shadow-md" onClick={handleSearch}>Buscar</Button>
             <Button variant="outline" className="flex-1 rounded-xl" onClick={clearFilters}>Limpiar</Button>
@@ -309,7 +310,10 @@ const Catalog = () => {
               {cars.map(car => (
                 <motion.div
                   key={car.id}
-                  variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+                  variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    visible: { opacity: 1, y: 0 }
+                  }}
                   transition={{ duration: 0.4 }}
                 >
                   <CarCard

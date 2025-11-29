@@ -9,23 +9,22 @@ import { supabase } from '@/integrations/supabase/client';
 
 const Hero = () => {
   const navigate = useNavigate();
+
   const [searchData, setSearchData] = useState({
     brand: '',
     model: '',
     year: '',
-    maxPrice: '',
-    sucursal: ''
+    maxPrice: ''
   });
 
   const [brands, setBrands] = useState<string[]>([]);
   const [years, setYears] = useState<number[]>([]);
-  const [sucursales, setSucursales] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       const { data, error } = await supabase
         .from('cars')
-        .select('brand, year, sucursal')
+        .select('brand, year') // <-- sucursal removido
         .neq('brand', null);
 
       if (error) {
@@ -34,15 +33,8 @@ const Hero = () => {
       }
 
       setBrands(Array.from(new Set(data.map((item: any) => item.brand))));
-      setYears(Array.from(new Set(data.map((item: any) => item.year))).sort((a, b) => b - a));
-      setSucursales(
-        Array.from(
-          new Set(
-            data
-              .map((item: any) => (item.sucursal ? item.sucursal.trim() : null))
-              .filter(Boolean)
-          )
-        ).sort()
+      setYears(
+        Array.from(new Set(data.map((item: any) => item.year))).sort((a, b) => b - a)
       );
     };
 
@@ -51,18 +43,18 @@ const Hero = () => {
 
   const handleSearch = () => {
     const params = new URLSearchParams();
+
     if (searchData.brand) params.set('brand', searchData.brand);
     if (searchData.model) params.set('model', searchData.model);
     if (searchData.year) params.set('year', searchData.year);
     if (searchData.maxPrice) params.set('maxPrice', searchData.maxPrice);
-    if (searchData.sucursal) params.set('sucursal', searchData.sucursal);
 
     navigate(`/catalog?${params.toString()}`);
   };
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
-      {/* Video de fondo estilo Apple: opaco y elegante */}
+      {/* Video de fondo estilo Apple */}
       <div className="absolute inset-0">
         <video
           autoPlay
@@ -76,7 +68,7 @@ const Hero = () => {
         <div className="absolute inset-0 bg-black/30"></div>
       </div>
 
-      {/* Contenido central */}
+      {/* Contenido */}
       <div className="container relative z-10 px-4 text-center flex flex-col items-center justify-center">
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
@@ -96,7 +88,7 @@ const Hero = () => {
           Descubre la mejor selección de vehículos nuevos y usados
         </motion.p>
 
-        {/* Sección de búsqueda estilo Apple: minimalista y elegante */}
+        {/* Buscador */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -105,7 +97,8 @@ const Hero = () => {
         >
           <h3 className="text-lg md:text-xl text-white mb-4 font-medium">Busca tu auto ideal</h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            {/* Marca */}
             <Select
               value={searchData.brand}
               onValueChange={(value) => setSearchData((prev) => ({ ...prev, brand: value }))}
@@ -122,6 +115,7 @@ const Hero = () => {
               </SelectContent>
             </Select>
 
+            {/* Modelo */}
             <Input
               placeholder="Modelo"
               className="bg-white/20 text-white placeholder-white/70 border-none focus:ring-1 focus:ring-white transition"
@@ -129,6 +123,7 @@ const Hero = () => {
               onChange={(e) => setSearchData((prev) => ({ ...prev, model: e.target.value }))}
             />
 
+            {/* Año */}
             <Select
               value={searchData.year}
               onValueChange={(value) => setSearchData((prev) => ({ ...prev, year: value }))}
@@ -145,22 +140,7 @@ const Hero = () => {
               </SelectContent>
             </Select>
 
-            <Select
-              value={searchData.sucursal}
-              onValueChange={(value) => setSearchData((prev) => ({ ...prev, sucursal: value }))}
-            >
-              <SelectTrigger className="bg-white/20 text-white placeholder-white/70 border-none hover:bg-white/25 transition">
-                <SelectValue placeholder="Sucursal" />
-              </SelectTrigger>
-              <SelectContent>
-                {sucursales.map((sucursal) => (
-                  <SelectItem key={sucursal} value={sucursal}>
-                    {sucursal}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
+            {/* Precio */}
             <Input
               placeholder="Precio máx."
               type="number"
