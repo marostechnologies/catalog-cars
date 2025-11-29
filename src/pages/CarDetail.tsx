@@ -218,19 +218,55 @@ const CarDetail = () => {
     }
   };
 
-  // ==================== FUNCIONES PARA BOTONES DE CONTACTO - ACTUALIZADAS ====================
-  // NOTA: Se sigue usando el mapa agencyNumbers para la lógica de los botones de contacto
-  // y se asume que 'car.agency' reemplazó a 'car.sucursal'
-  const handleWhatsApp = () => {
-    if (!car?.agency || !agencyNumbers[car.agency]?.whatsapp) {
-      toast.error('Número de WhatsApp no disponible para esta agencia.');
-      return;
+  // ==================== FUNCIONES PARA BOTONES DE CONTACTO - INICIO ====================
+  
+  /**
+   * Función de utilidad para obtener y limpiar el número de WhatsApp.
+   * Retorna solo dígitos.
+   */
+  const getCleanWhatsappNumber = () => {
+    let whatsappNumber = null;
+    
+    // 1. Intentar usar el número directo del coche (agency_phone)
+    if (car?.agency_phone) {
+      whatsappNumber = car.agency_phone; 
     }
-    const whatsappNumber = agencyNumbers[car.agency].whatsapp;
-    const message = `Hola, estoy interesado en el auto ${car.brand} ${car.model} (${car.year}) que vi en su sitio web.`;
-    window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
+
+    // 2. Si no hay agency_phone, recurrir al mapa agencyNumbers
+    if (!whatsappNumber && car?.agency && agencyNumbers[car.agency]?.whatsapp) {
+      whatsappNumber = agencyNumbers[car.agency].whatsapp;
+    }
+    
+    if (!whatsappNumber) {
+      return null;
+    }
+
+    // CLAVE: Limpiar CUALQUIER CARÁCTER QUE NO SEA UN DÍGITO (Regex /\D/g)
+    // Esto asegura que wa.me reciba un número válido (ej: 525529310292)
+    return whatsappNumber.replace(/\D/g, ''); 
   };
 
+  /**
+   * Maneja el clic en el botón de WhatsApp.
+   * Redirecciona a la URL de wa.me con el número de la agencia.
+   */
+  const handleWhatsApp = () => {
+    const cleanNumber = getCleanWhatsappNumber();
+
+    if (!cleanNumber) {
+      toast.error('Número de WhatsApp no disponible para esta agencia o formato incorrecto.');
+      return;
+    }
+    
+    const message = `Hola, estoy interesado en el auto ${car?.brand} ${car?.model} (${car?.year}) que vi en su sitio web.`;
+    
+    // Redirección directa al perfil/chat de WhatsApp
+    window.open(`https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
+  /**
+   * Maneja el clic en el botón de Llamar. (Lógica original)
+   */
   const handleCall = () => {
     // Si el auto tiene agency_phone, lo usamos, si no, intentamos el mapa
     const phoneNumber = car?.agency_phone || (car?.agency ? agencyNumbers[car.agency]?.phone : null);
@@ -245,17 +281,29 @@ const CarDetail = () => {
   const confirmCall = () => {
     const phoneNumber = car?.agency_phone || (car?.agency ? agencyNumbers[car.agency]?.phone : null);
     if (phoneNumber) {
+      // Redirección directa a la función de llamada
       window.location.href = `tel:${phoneNumber}`;
       setIsCallModalOpen(false); // Cierra el modal después de iniciar la llamada
     }
   };
 
+  /**
+   * Maneja el clic en el botón de Cotización por WhatsApp.
+   * Utiliza la misma lógica de redirección que handleWhatsApp.
+   */
   const handleWhatsappQuote = () => {
-    if (!car || !car.agency || !agencyNumbers[car.agency]?.whatsapp || !monthlyPayment || !downPayment || !months) {
+    if (!car || !monthlyPayment || !downPayment || !months) {
       toast.error('Información incompleta para generar la cotización.');
       return;
     }
-    const whatsappNumber = agencyNumbers[car.agency].whatsapp;
+
+    const cleanNumber = getCleanWhatsappNumber();
+
+    if (!cleanNumber) {
+      toast.error('Número de WhatsApp no disponible para esta agencia o formato incorrecto.');
+      return;
+    }
+
     const message = `Hola, estoy interesado en el auto ${car.brand} ${car.model} (${car.year}).
 Me gustaría una cotización formal.
 ---
@@ -265,7 +313,9 @@ Me gustaría una cotización formal.
 - Pago mensual estimado: ${formatPrice(monthlyPayment)}
 ---
 ¡Espero su respuesta!`;
-    window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
+    
+    // Redirección directa al perfil/chat de WhatsApp
+    window.open(`https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`, '_blank');
   };
   // ==================== FIN FUNCIONES PARA BOTONES DE CONTACTO ====================
 
@@ -438,7 +488,7 @@ Me gustaría una cotización formal.
                   </div>
                   
                   {/* ============================================== */}
-                  {/* 3. INSERCIÓN DE AGENCY Y AGENCY_PHONE */}
+                  {/* INSERCIÓN DE AGENCY Y AGENCY_PHONE */}
                   {/* ============================================== */}
                   {car.agency && (
                     <div className="flex items-center space-x-2">
@@ -454,7 +504,6 @@ Me gustaría una cotización formal.
                     </div>
                   )}
                   {/* Fin de inserción */}
-                  {/* Se elimina la referencia a 'car.sucursal' */}
                 </div>
               </CardContent>
             </Card>

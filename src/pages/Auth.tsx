@@ -22,6 +22,7 @@ const Auth = () => {
   const searchParams = new URLSearchParams(location.search);
   const redirect = searchParams.get('redirect') || '/';
 
+  // --- Lógica de Supabase (sin cambios en funcionalidad) ---
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
@@ -88,6 +89,7 @@ const Auth = () => {
     }
   };
 
+  // --- Componentes de Formulario (ajustes de clases) ---
   const LoginForm = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -104,7 +106,8 @@ const Auth = () => {
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-gray-100">Correo Electrónico</Label>
+          {/* Eliminamos la clase text-gray-100 para un diseño más limpio */}
+          <Label htmlFor="email" className="text-sm font-medium text-gray-200">Correo Electrónico</Label>
           <div className="relative">
             <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
@@ -113,14 +116,15 @@ const Auth = () => {
               placeholder="tu@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 rounded-xl border border-gray-600 focus:ring-1 focus:ring-blue-400 focus:border-blue-400 transition-all duration-200 bg-gray-700 text-white placeholder-gray-400"
+              // Clases minimalistas: fondo gris oscuro plano, bordes sutiles, foco azul
+              className="pl-10 rounded-lg border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-800 text-white placeholder-gray-400"
               disabled={isLoading}
             />
           </div>
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-gray-100">Contraseña</Label>
+          <Label htmlFor="password" className="text-sm font-medium text-gray-200">Contraseña</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
@@ -129,7 +133,8 @@ const Auth = () => {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 rounded-xl border border-gray-600 focus:ring-1 focus:ring-blue-400 focus:border-blue-400 transition-all duration-200 bg-gray-700 text-white placeholder-gray-400"
+              // Clases minimalistas: fondo gris oscuro plano, bordes sutiles, foco azul
+              className="pl-10 rounded-lg border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-800 text-white placeholder-gray-400"
               disabled={isLoading}
             />
           </div>
@@ -137,7 +142,8 @@ const Auth = () => {
 
         <Button
           type="submit"
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.99] active:shadow-md"
+          // Botón con color primario, sombra y animación de hover sutil
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg shadow-blue-600/30 transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.99]"
           disabled={isLoading}
         >
           {isLoading ? (
@@ -175,7 +181,7 @@ const Auth = () => {
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="fullName" className="text-gray-100">Nombre Completo</Label>
+          <Label htmlFor="fullName" className="text-sm font-medium text-gray-200">Nombre Completo</Label>
           <div className="relative">
             <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
@@ -184,14 +190,14 @@ const Auth = () => {
               placeholder="Juan Pérez"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="pl-10 rounded-xl border border-gray-600 focus:ring-1 focus:ring-blue-400 focus:border-blue-400 transition-all duration-200 bg-gray-700 text-white placeholder-gray-400"
+              className="pl-10 rounded-lg border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-800 text-white placeholder-gray-400"
               disabled={isLoading}
             />
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="phone" className="text-gray-100">Teléfono</Label>
+          <Label htmlFor="phone" className="text-sm font-medium text-gray-200">Teléfono</Label>
           <div className="relative">
             <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
@@ -200,14 +206,14 @@ const Auth = () => {
               placeholder="+52 555 123 4567"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="pl-10 rounded-xl border border-gray-600 focus:ring-1 focus:ring-blue-400 focus:border-blue-400 transition-all duration-200 bg-gray-700 text-white placeholder-gray-400"
+              className="pl-10 rounded-lg border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-800 text-white placeholder-gray-400"
               disabled={isLoading}
             />
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="signup-email" className="text-gray-100">Correo Electrónico</Label>
+          <Label htmlFor="signup-email" className="text-sm font-medium text-gray-200">Correo Electrónico</Label>
           <div className="relative">
             <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
@@ -216,14 +222,14 @@ const Auth = () => {
               placeholder="tu@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 rounded-xl border border-gray-600 focus:ring-1 focus:ring-blue-400 focus:border-blue-400 transition-all duration-200 bg-gray-700 text-white placeholder-gray-400"
+              className="pl-10 rounded-lg border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-800 text-white placeholder-gray-400"
               disabled={isLoading}
             />
           </div>
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="signup-password" className="text-gray-100">Contraseña</Label>
+          <Label htmlFor="signup-password" className="text-sm font-medium text-gray-200">Contraseña</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
@@ -232,16 +238,17 @@ const Auth = () => {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 rounded-xl border border-gray-600 focus:ring-1 focus:ring-blue-400 focus:border-blue-400 transition-all duration-200 bg-gray-700 text-white placeholder-gray-400"
+              className="pl-10 rounded-lg border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-800 text-white placeholder-gray-400"
               disabled={isLoading}
             />
           </div>
-          <p className="text-xs text-gray-300">Mínimo 6 caracteres</p>
+          <p className="text-xs text-gray-400">Mínimo 6 caracteres</p>
         </div>
 
         <Button
           type="submit"
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.99] active:shadow-md"
+          // Botón con color primario, sombra y animación de hover sutil
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg shadow-blue-600/30 transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.99]"
           disabled={isLoading}
         >
           {isLoading ? (
@@ -256,70 +263,70 @@ const Auth = () => {
       </form>
     );
   };
-
+  // --- Fin Componentes de Formulario ---
+  
   if (user) {
     navigate(redirect);
     return null;
   }
 
   return (
-    <>
-      <style jsx global>{`
-        @keyframes gradient-animation {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
+    // Contenedor principal: Fondo negro/gris oscuro plano y sutil
+    // Eliminamos el <style jsx global> y la clase animate-gradient para mejor rendimiento y minimalismo.
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-900">
+      <Card 
+        // Tarjeta: Fondo gris oscuro sólido (no transparente), bordes más sutiles y redondeados
+        // Se reduce el redondeo a 'xl' para un aspecto más limpio y moderno.
+        className="w-full max-w-sm sm:max-w-md bg-gray-800 rounded-xl shadow-2xl border border-gray-700 overflow-hidden"
+      >
+        <CardHeader className="text-center p-6 sm:p-8 bg-gray-800 text-white border-b border-gray-700">
+          <div className="flex items-center justify-center mb-2">
+            {/* Si el logo es oscuro, un ligero cambio de estilo puede ayudar */}
+            <img 
+              src="/JPCars_logo.png" 
+              alt="JPCars Logo" 
+              className="h-12 sm:h-14 w-auto drop-shadow-md filter brightness-125" // Ligero filtro para mejorar visibilidad en fondo oscuro
+            />
+          </div>
+          <CardTitle className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">Bienvenido</CardTitle>
+          <CardDescription className="text-gray-400 mt-2">
+            Accede o crea una cuenta para continuar.
+          </CardDescription>
+        </CardHeader>
 
-        .animate-gradient {
-          background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-          background-size: 400% 400%;
-          animation: gradient-animation 15s ease infinite;
-        }
-      `}</style>
-      <div className="min-h-screen flex items-center justify-center p-4 animate-gradient">
-        <Card className="w-full max-w-md bg-black/70 backdrop-blur-md rounded-3xl shadow-2xl border border-gray-700 overflow-hidden animate-fade-in-up">
-          <CardHeader className="text-center p-8 bg-transparent text-white border-b border-gray-700">
-            <div className="flex items-center justify-center mb-2">
-              <img src="/JPCars_logo.png" alt="Autospace Logo" className="h-16 w-auto drop-shadow-md" />
-            </div>
-            <CardTitle className="text-4xl font-extrabold tracking-tight text-white">Bienvenido</CardTitle>
-            <CardDescription className="text-gray-300 mt-2">
-              Accede o crea una cuenta para continuar.
-            </CardDescription>
-          </CardHeader>
+        <CardContent className="p-6 sm:p-8">
+          <Tabs defaultValue="login" className="w-full">
+            {/* Lista de pestañas: Diseño más limpio con fondo gris claro y texto resaltado */}
+            <TabsList className="grid w-full grid-cols-2 h-10 bg-gray-700 rounded-lg p-0.5 mb-6 shadow-md">
+              <TabsTrigger
+                value="login"
+                // Estado activo: Color azul primario, con esquinas redondeadas
+                className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:font-semibold data-[state=active]:rounded-[6px] data-[state=active]:transition-all data-[state=active]:duration-300 text-gray-300 hover:text-white rounded-[6px]"
+              >Iniciar Sesión</TabsTrigger>
+              <TabsTrigger
+                value="signup"
+                // Estado activo: Color azul primario, con esquinas redondeadas
+                className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:font-semibold data-[state=active]:rounded-[6px] data-[state=active]:transition-all data-[state=active]:duration-300 text-gray-300 hover:text-white rounded-[6px]"
+              >Registrarse</TabsTrigger>
+            </TabsList>
 
-          <CardContent className="p-8">
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 h-11 bg-gray-800 rounded-full p-1 mb-6 shadow-inner">
-                <TabsTrigger
-                  value="login"
-                  className="data-[state=active]:bg-gray-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:font-semibold data-[state=active]:rounded-full data-[state=active]:transition-all data-[state=active]:duration-300 text-gray-300 hover:text-white"
-                >Iniciar Sesión</TabsTrigger>
-                <TabsTrigger
-                  value="signup"
-                  className="data-[state=active]:bg-gray-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:font-semibold data-[state=active]:rounded-full data-[state=active]:transition-all data-[state=active]:duration-300 text-gray-300 hover:text-white"
-                >Registrarse</TabsTrigger>
-              </TabsList>
+            <TabsContent value="login" className="space-y-4 mt-4">
+              <LoginForm />
+            </TabsContent>
 
-              <TabsContent value="login" className="space-y-4 mt-4">
-                <LoginForm />
-              </TabsContent>
+            <TabsContent value="signup" className="space-y-4 mt-4">
+              <SignUpForm />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
 
-              <TabsContent value="signup" className="space-y-4 mt-4">
-                <SignUpForm />
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-
-          <CardFooter className="flex flex-col space-y-3 text-center p-8 bg-transparent rounded-b-3xl border-t border-gray-700">
-            <Link to="/" className="text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300 font-medium">
-              ← Volver al inicio
-            </Link>
-          </CardFooter>
-        </Card>
-      </div>
-    </>
+        <CardFooter className="flex flex-col space-y-3 text-center p-6 sm:p-8 bg-gray-800 rounded-b-xl border-t border-gray-700">
+          <Link to="/" className="text-sm text-gray-400 hover:text-blue-500 transition-colors duration-300 font-medium">
+            ← Volver al inicio
+          </Link>
+        </CardFooter>
+      </Card>
+    </div>
   );
 };
 
