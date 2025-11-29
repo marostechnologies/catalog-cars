@@ -101,9 +101,10 @@ const Navbar = () => {
               onClick={() => navigate('/')}
             >
               <img 
-                src="/MAROS_LOGO_SINFONDO.PNG" 
+                src="/JPCars_logo.png" 
                 alt="Autospace Logo" 
-                className="h-8 md:h-10 w-auto"
+                // CLASES MODIFICADAS AQUÍ: Usamos h-14 para un tamaño más visible.
+                className="h-14 md:h-14 w-auto" 
               />
             </motion.div>
 
@@ -276,9 +277,9 @@ const Navbar = () => {
                       <Button variant="ghost" size="sm" onClick={() => handleNavigation('/catalog')}>
                         <Search className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={handleFavorites}>
+                      {/*<Button variant="ghost" size="sm" onClick={handleFavorites}>
                         <Heart className="h-4 w-4" />
-                      </Button>
+                      </Button>*/}
                       <Button size="sm" onClick={() => setShowContact(true)}>
                         Contacto
                       </Button>

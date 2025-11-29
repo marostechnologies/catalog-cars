@@ -67,7 +67,7 @@ const Index = () => {
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <img 
-                  src="/MAROS_LOGO_SINFONDO.PNG" 
+                  src="/JPCars_logo.png" 
                   alt="MAROS Logo" 
                   className="h-10 w-auto" 
                 />
@@ -159,7 +159,7 @@ const Index = () => {
 
           {/* Footer final */}
           <div className="mt-10 text-center text-gray-500 text-sm">
-            <p>© {currentYear} MAROS Technology. Todos los derechos reservados.</p>
+            <p>© {currentYear} JPCars. Todos los derechos reservados.</p>
           </div>
         </div>
       </footer>

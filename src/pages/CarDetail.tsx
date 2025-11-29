@@ -494,14 +494,14 @@ Me gustaría una cotización formal.
 
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="secondary" size="lg" className="w-full glow-effect">
+                {/*+<Button variant="secondary" size="lg" className="w-full glow-effect">
                   Solicitar Información
-                </Button>
+                </Button>+*/}
               </DialogTrigger>
               <DialogContent>
-                <DialogHeader>
+                {/*<DialogHeader>
                   <DialogTitle>Solicitar Información</DialogTitle>
-                </DialogHeader>
+                </DialogHeader>*/}
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="name">Nombre completo</Label>
