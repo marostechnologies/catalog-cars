@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Autospace Design System - Red automotive theme with smooth animations */
+/* Autospace Design System - Two-Tone Blue Professional theme */
 
 @layer base {
   :root {
@@ -15,10 +15,10 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 8%;
 
-    /* Primary - Vibrant automotive red */
-    --primary: 0 85% 55%;
+    /* Primary - Base Blue (#1793c1 -> H:196, S:78%, L:42%) */
+    --primary: 196 78% 42%;
     --primary-foreground: 0 0% 98%;
-    --primary-glow: 0 85% 65%;
+    --primary-glow: 196 78% 52%; /* Tono más claro para el efecto glow */
 
     /* Secondary - Dark charcoal for elegance */
     --secondary: 0 0% 15%;
@@ -27,24 +27,24 @@
     --muted: 0 0% 95%;
     --muted-foreground: 0 0% 45%;
 
-    --accent: 0 75% 50%;
+    --accent: 196 78% 42%; 
     --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 84% 60%; /* Se mantiene rojo para alertas */
     --destructive-foreground: 0 0% 98%;
 
     --border: 0 0% 90%;
     --input: 0 0% 95%;
-    --ring: 0 85% 55%;
+    --ring: 196 78% 42%; /* Anillo del color primario */
 
-    /* Automotive gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(0 85% 55%), hsl(0 75% 45%));
-    --gradient-hero: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(0 85% 15%) 100%);
+    /* Automotive gradients - Combina el base (1793c1) con el oscuro (1d4f77) */
+    --gradient-primary: linear-gradient(135deg, hsl(196 78% 42%), hsl(209 61% 28%));
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(196 78% 15%) 100%); 
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(0 0% 96%) 100%);
     
-    /* Automotive shadows */
-    --shadow-car: 0 20px 40px -10px hsl(0 85% 55% / 0.25);
-    --shadow-glow: 0 0 30px hsl(0 85% 55% / 0.3);
+    /* Automotive shadows - Usa el tono base */
+    --shadow-car: 0 20px 40px -10px hsl(196 78% 42% / 0.25); 
+    --shadow-glow: 0 0 30px hsl(196 78% 42% / 0.3); 
     --shadow-subtle: 0 4px 20px hsl(0 0% 0% / 0.08);
 
     --radius: 0.5rem;
@@ -76,9 +76,10 @@
     --popover: 0 0% 12%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 0 85% 55%;
+    /* Primary - Base Blue (#1793c1) */
+    --primary: 196 78% 42%; 
     --primary-foreground: 0 0% 98%;
-    --primary-glow: 0 85% 65%;
+    --primary-glow: 196 78% 52%;
 
     --secondary: 0 0% 20%;
     --secondary-foreground: 0 0% 98%;
@@ -86,19 +87,19 @@
     --muted: 0 0% 20%;
     --muted-foreground: 0 0% 65%;
 
-    --accent: 0 75% 50%;
+    --accent: 196 78% 42%; 
     --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 62% 50%;
+    --destructive: 0 62% 50%; /* Se mantiene rojo para alertas */
     --destructive-foreground: 0 0% 98%;
 
     --border: 0 0% 20%;
     --input: 0 0% 20%;
-    --ring: 0 85% 55%;
+    --ring: 196 78% 42%; /* Anillo del color primario */
 
     /* Dark mode gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(0 85% 55%), hsl(0 75% 45%));
-    --gradient-hero: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(0 85% 15%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(196 78% 42%), hsl(209 61% 28%));
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(196 78% 15%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 12%) 0%, hsl(0 0% 16%) 100%);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;

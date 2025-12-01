@@ -238,7 +238,8 @@ const Navbar = () => {
                               onClick={handleFavorites}
                               className="w-full justify-start text-white hover:bg-gray-800"
                             >
-                              {/*<Heart className="mr-2 h-4 w-4" />
+                              {/*<
+                               className="mr-2 h-4 w-4" />
                               Mis Favoritos*/}
                             </Button>
                             {isAdmin && (
