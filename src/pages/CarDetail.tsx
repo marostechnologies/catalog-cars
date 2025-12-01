@@ -30,17 +30,12 @@ type Car = CarRow & {
 
 // =======================================================
 // 2. RENOMBRAR MAPA DE CONTACTO (de sucursalNumbers a agencyNumbers)
-// Se mantiene la misma estructura para la lógica de los botones de contacto
 // =======================================================
 const agencyNumbers = {
   'Sucursal Tlalnepantla': {
     phone: '+525529310292',
     whatsapp: '525529310292',
   },
-  /*'Sucursal Cancún': {
-    phone: '+529982345678',
-    whatsapp: '529982345678',
-  },*/
   // Agrega más agencias aquí si es necesario
 };
 
@@ -61,15 +56,14 @@ const CarDetail = () => {
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [currentViewedImageIndex, setCurrentViewedImageIndex] = useState(0);
 
-  // Estados adicionales que no afectaron la lógica original pero son necesarios
-  const [isFavorite, setIsFavorite] = useState(false); // Asumiendo estado de favorito
+  // ESTADO ELIMINADO: Ya no es necesario
+  // const [isFavorite, setIsFavorite] = useState(false); 
   const [userContact, setUserContact] = useState({ name: '', email: '', phone: '', message: '' });
 
 
   useEffect(() => {
     if (id) {
       fetchCarDetails(id);
-      // Aquí se podría añadir lógica para verificar si el auto es favorito
     }
   }, [id]);
 
@@ -166,12 +160,11 @@ const CarDetail = () => {
     }
   };
 
-  // Lógica de Favoritos (simulada)
-  const handleFavoriteToggle = () => {
-    setIsFavorite(!isFavorite);
-    toast.success(isFavorite ? 'Quitado de favoritos' : 'Añadido a favoritos');
-    // Aquí iría la llamada a Supabase/API para guardar el estado real
-  };
+  // LÓGICA ELIMINADA: Ya no es necesaria
+  // const handleFavoriteToggle = () => {
+  //   setIsFavorite(!isFavorite);
+  //   toast.success(isFavorite ? 'Quitado de favoritos' : 'Añadido a favoritos');
+  // };
   
   const calculateMonthlyPayment = () => {
     if (!car) return;
@@ -237,17 +230,14 @@ const CarDetail = () => {
   
   /**
    * Función de utilidad para obtener y limpiar el número de WhatsApp.
-   * Retorna solo dígitos.
    */
   const getCleanWhatsappNumber = () => {
     let whatsappNumber = null;
     
-    // 1. Intentar usar el número directo del coche (agency_phone)
     if (car?.agency_phone) {
       whatsappNumber = car.agency_phone; 
     }
 
-    // 2. Si no hay agency_phone, recurrir al mapa agencyNumbers
     if (!whatsappNumber && car?.agency && agencyNumbers[car.agency]?.whatsapp) {
       whatsappNumber = agencyNumbers[car.agency].whatsapp;
     }
@@ -256,14 +246,11 @@ const CarDetail = () => {
       return null;
     }
 
-    // CLAVE: Limpiar CUALQUIER CARÁCTER QUE NO SEA UN DÍGITO (Regex /\D/g)
-    // Esto asegura que wa.me reciba un número válido (ej: 525529310292)
     return whatsappNumber.replace(/\D/g, ''); 
   };
 
   /**
    * Maneja el clic en el botón de WhatsApp.
-   * Redirecciona a la URL de wa.me con el número de la agencia.
    */
   const handleWhatsApp = () => {
     const cleanNumber = getCleanWhatsappNumber();
@@ -275,7 +262,6 @@ const CarDetail = () => {
     
     const message = `Hola, estoy interesado en el auto ${car?.brand} ${car?.model} (${car?.year}) que vi en su sitio web.`;
     
-    // Redirección directa al perfil/chat de WhatsApp
     window.open(`https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -283,7 +269,6 @@ const CarDetail = () => {
    * Maneja el clic en el botón de Llamar. (Lógica original)
    */
   const handleCall = () => {
-    // Si el auto tiene agency_phone, lo usamos, si no, intentamos el mapa
     const phoneNumber = car?.agency_phone || (car?.agency ? agencyNumbers[car.agency]?.phone : null);
 
     if (!phoneNumber) {
@@ -296,7 +281,6 @@ const CarDetail = () => {
   const confirmCall = () => {
     const phoneNumber = car?.agency_phone || (car?.agency ? agencyNumbers[car.agency]?.phone : null);
     if (phoneNumber) {
-      // Redirección directa a la función de llamada
       window.location.href = `tel:${phoneNumber}`;
       setIsCallModalOpen(false); // Cierra el modal después de iniciar la llamada
     }
@@ -304,7 +288,6 @@ const CarDetail = () => {
 
   /**
    * Maneja el clic en el botón de Cotización por WhatsApp.
-   * Utiliza la misma lógica de redirección que handleWhatsApp.
    */
   const handleWhatsappQuote = () => {
     if (!car || !monthlyPayment || downPayment === '' || months === '') {
@@ -329,7 +312,6 @@ Me gustaría una cotización formal.
 ---
 ¡Espero su respuesta!`;
     
-    // Redirección directa al perfil/chat de WhatsApp
     window.open(`https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -480,21 +462,24 @@ Me gustaría una cotización formal.
                 <p className="text-lg text-muted-foreground">{car.year}</p>
               </div>
               
-              {/* === BOTÓN DE FAVORITO === */}
+              {/* === BOTÓN DE FAVORITO ELIMINADO === */}
+              {/* Se eliminó el siguiente bloque de código:
               <Button
                 variant="outline"
                 size="icon"
                 className="flex-shrink-0"
                 onClick={handleFavoriteToggle}
               >
-                {/*<Heart 
+                <Heart 
                   className={`h-6 w-6 transition-colors ${
                     isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground hover:text-red-500'
                   }`} 
-                />*/}
+                />
               </Button>
-              {/* === FIN BOTÓN DE FAVORITO === */}
-            </div>
+              */}
+              {/* === FIN BOTÓN DE FAVORITO ELIMINADO === */}
+              
+            </div> 
 
             <div className="flex items-center space-x-4">
               <div className="text-3xl font-bold text-primary">
@@ -841,30 +826,6 @@ Me gustaría una cotización formal.
               </div>
             </DialogContent>
           </Dialog>
-        )}
-
-        {relatedCars.length > 0 && (
-          <motion.section
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="space-y-6"
-          >
-            <h2 className="text-2xl font-bold">Vehículos Relacionados</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {relatedCars.map((relatedCar) => (
-                <CarCard
-                  key={relatedCar.id}
-                  car={{
-                    ...relatedCar,
-                    car_images: relatedCar.car_images || [],
-                  }}
-                  onFavorite={() => { /* Manejar favorito en tarjeta relacionada */ }}
-                  isFavorite={false} // Ajustar si tienes lógica para favoritos en relacionados
-                />
-              ))}
-            </div>
-          </motion.section>
         )}
       </div>
     </div>
