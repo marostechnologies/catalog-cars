@@ -130,9 +130,10 @@ const Navbar = () => {
               <Button variant="ghost" size="sm" className="text-white glow-effect" onClick={() => navigate('/catalog')}>
                 <Search className="h-4 w-4" />
               </Button>
-              {/*<Button variant="ghost" size="sm" className="text-white glow-effect" onClick={handleFavorites}>
+              {/* Botón de Favoritos (Icono Heart) - Se mantiene como única forma de acceso directo */}
+              <Button variant="ghost" size="sm" className="text-white glow-effect" onClick={handleFavorites}>
                 <Heart className="h-4 w-4" />
-              </Button>*/}
+              </Button>
               
               {user ? (
                 <DropdownMenu>
@@ -157,16 +158,16 @@ const Navbar = () => {
                         </p>
                       </div>
                     </div>
-                    <DropdownMenuSeparator className="bg-border" />
-                    {/*<DropdownMenuItem onClick={() => navigate('/favorites')} className="text-white hover:bg-gray-800">
-                      <Heart className="mr-2 h-4 w-4" />
-                      <span>Mis Favoritos</span>
-                    </DropdownMenuItem>*/}
+                    {/* DROP DOWN ITEM "Mis Favoritos" ELIMINADO AQUÍ */}
+                    
                     {isAdmin && (
-                      <DropdownMenuItem onClick={() => navigate('/admin')} className="text-white hover:bg-gray-800">
-                        <Settings className="mr-2 h-4 w-4" />
-                        <span>Panel Admin</span>
-                      </DropdownMenuItem>
+                      <>
+                        <DropdownMenuSeparator className="bg-border" />
+                        <DropdownMenuItem onClick={() => navigate('/admin')} className="text-white hover:bg-gray-800">
+                          <Settings className="mr-2 h-4 w-4" />
+                          <span>Panel Admin</span>
+                        </DropdownMenuItem>
+                      </>
                     )}
                     <DropdownMenuSeparator className="bg-border" />
                     <DropdownMenuItem onClick={handleSignOut} className="text-red-500 hover:bg-gray-800">
@@ -233,15 +234,8 @@ const Navbar = () => {
                             </div>
                           </div>
                           <div className="space-y-2">
-                            <Button
-                              variant="ghost"
-                              onClick={handleFavorites}
-                              className="w-full justify-start text-white hover:bg-gray-800"
-                            >
-                              {/*<
-                               className="mr-2 h-4 w-4" />
-                              Mis Favoritos*/}
-                            </Button>
+                            {/* BOTÓN "Mis Favoritos" ELIMINADO DE LA SECCIÓN DE USUARIO MÓVIL */}
+                            
                             {isAdmin && (
                               <Button
                                 variant="ghost"
@@ -278,9 +272,10 @@ const Navbar = () => {
                       <Button variant="ghost" size="sm" onClick={() => handleNavigation('/catalog')}>
                         <Search className="h-4 w-4" />
                       </Button>
-                      {/*<Button variant="ghost" size="sm" onClick={handleFavorites}>
+                      {/* Botón de Favoritos (Icono Heart) - Se mantiene aquí */}
+                      <Button variant="ghost" size="sm" onClick={handleFavorites}>
                         <Heart className="h-4 w-4" />
-                      </Button>*/}
+                      </Button>
                       <Button size="sm" onClick={() => setShowContact(true)}>
                         Contacto
                       </Button>

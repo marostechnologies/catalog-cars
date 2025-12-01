@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft, Phone, MessageCircle, Calendar,
-  Gauge, Fuel, Cog, MapPin, ChevronLeft, ChevronRight, X, Droplet, Store
+  Gauge, Fuel, Cog, MapPin, ChevronLeft, ChevronRight, X, Droplet, Store, Heart
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -61,9 +61,15 @@ const CarDetail = () => {
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [currentViewedImageIndex, setCurrentViewedImageIndex] = useState(0);
 
+  // Estados adicionales que no afectaron la lógica original pero son necesarios
+  const [isFavorite, setIsFavorite] = useState(false); // Asumiendo estado de favorito
+  const [userContact, setUserContact] = useState({ name: '', email: '', phone: '', message: '' });
+
+
   useEffect(() => {
     if (id) {
       fetchCarDetails(id);
+      // Aquí se podría añadir lógica para verificar si el auto es favorito
     }
   }, [id]);
 
@@ -159,6 +165,13 @@ const CarDetail = () => {
       setSimulationOpen(true);
     }
   };
+
+  // Lógica de Favoritos (simulada)
+  const handleFavoriteToggle = () => {
+    setIsFavorite(!isFavorite);
+    toast.success(isFavorite ? 'Quitado de favoritos' : 'Añadido a favoritos');
+    // Aquí iría la llamada a Supabase/API para guardar el estado real
+  };
   
   const calculateMonthlyPayment = () => {
     if (!car) return;
@@ -177,6 +190,7 @@ const CarDetail = () => {
     const downPaymentPercentage = (down / price);
     let annualInterestRate;
     
+    // Asignación de tasa: 14.99% para 30% o más, 15.99% para menos de 30%
     if (downPaymentPercentage >= 0.3) {
       annualInterestRate = 0.1499; // 14.99% anual
     } else {
@@ -189,6 +203,7 @@ const CarDetail = () => {
     const monthlyInterestRate = annualInterestRate / 12;
 
     // Fórmula de anualidad para el pago mensual
+    // M = P [ i(1 + i)^n ] / [ (1 + i)^n – 1]
     const payment = (principal * monthlyInterestRate) / (1 - Math.pow(1 + monthlyInterestRate, -numMonths));
     
     setMonthlyPayment(payment);
@@ -292,7 +307,7 @@ const CarDetail = () => {
    * Utiliza la misma lógica de redirección que handleWhatsApp.
    */
   const handleWhatsappQuote = () => {
-    if (!car || !monthlyPayment || !downPayment || !months) {
+    if (!car || !monthlyPayment || downPayment === '' || months === '') {
       toast.error('Información incompleta para generar la cotización.');
       return;
     }
@@ -316,6 +331,21 @@ Me gustaría una cotización formal.
     
     // Redirección directa al perfil/chat de WhatsApp
     window.open(`https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
+  const handleSendContactForm = () => {
+    // Lógica simulada para enviar el formulario de contacto
+    if (!userContact.name || !userContact.email || !userContact.phone) {
+      toast.error('Por favor, completa los campos de nombre, email y teléfono.');
+      return;
+    }
+
+    // Aquí iría la lógica real de envío a la API o base de datos.
+    console.log('Formulario de contacto enviado:', userContact);
+    toast.success('Solicitud de información enviada correctamente.');
+
+    // Limpiar formulario y cerrar modal si fuera el caso
+    setUserContact({ name: '', email: '', phone: '', message: '' });
   };
   // ==================== FIN FUNCIONES PARA BOTONES DE CONTACTO ====================
 
@@ -449,6 +479,21 @@ Me gustaría una cotización formal.
                 </h1>
                 <p className="text-lg text-muted-foreground">{car.year}</p>
               </div>
+              
+              {/* === BOTÓN DE FAVORITO === */}
+              <Button
+                variant="outline"
+                size="icon"
+                className="flex-shrink-0"
+                onClick={handleFavoriteToggle}
+              >
+                <Heart 
+                  className={`h-6 w-6 transition-colors ${
+                    isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground hover:text-red-500'
+                  }`} 
+                />
+              </Button>
+              {/* === FIN BOTÓN DE FAVORITO === */}
             </div>
 
             <div className="flex items-center space-x-4">
@@ -543,36 +588,54 @@ Me gustaría una cotización formal.
 
             <Dialog>
               <DialogTrigger asChild>
-                {/*+<Button variant="secondary" size="lg" className="w-full glow-effect">
+                {/*<Button variant="secondary" size="lg" className="w-full glow-effect">
                   Solicitar Información
-                </Button>+*/}
+                </Button>*/}
               </DialogTrigger>
               <DialogContent>
-                {/*<DialogHeader>
+                <DialogHeader>
                   <DialogTitle>Solicitar Información</DialogTitle>
-                </DialogHeader>*/}
+                </DialogHeader>
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="name">Nombre completo</Label>
-                    <Input id="name" placeholder="Tu nombre" />
+                    <Input 
+                        id="name" 
+                        placeholder="Tu nombre" 
+                        value={userContact.name}
+                        onChange={(e) => setUserContact(prev => ({ ...prev, name: e.target.value }))}
+                    />
                   </div>
                   <div>
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="tu@email.com" />
+                    <Input 
+                        id="email" 
+                        type="email" 
+                        placeholder="tu@email.com" 
+                        value={userContact.email}
+                        onChange={(e) => setUserContact(prev => ({ ...prev, email: e.target.value }))}
+                    />
                   </div>
                   <div>
                     <Label htmlFor="phone">Teléfono</Label>
-                    <Input id="phone" placeholder="555-123-4567" />
+                    <Input 
+                        id="phone" 
+                        placeholder="555-123-4567" 
+                        value={userContact.phone}
+                        onChange={(e) => setUserContact(prev => ({ ...prev, phone: e.target.value }))}
+                    />
                   </div>
                   <div>
                     <Label htmlFor="message">Mensaje</Label>
                     <Textarea
                       id="message"
-                      placeholder="Estoy interesado en este vehículo..."
+                      placeholder={`Estoy interesado en el ${car.brand} ${car.model} (${car.year})...`}
                       rows={4}
+                      value={userContact.message}
+                      onChange={(e) => setUserContact(prev => ({ ...prev, message: e.target.value }))}
                     />
                   </div>
-                  <Button className="w-full">Enviar Solicitud</Button>
+                  <Button className="w-full" onClick={handleSendContactForm}>Enviar Solicitud</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -621,8 +684,7 @@ Me gustaría una cotización formal.
                   <p className="text-xl font-bold text-primary">{formatPrice(car.price)}</p>
                 </div>
                 <div>
-                  {/*<p className="text-sm font-semibold text-gray-500">Enganche Mínimo (1%):</p>
-                  <p className="text-xl font-bold text-primary">{formatPrice(car.price * 0.01)}</p>*/}
+                  {/* Espacio para información adicional */}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -689,14 +751,14 @@ Me gustaría una cotización formal.
               size="lg"
               className="w-full sm:w-auto glow-effect bg-green-500 hover:bg-green-600 text-white"
               onClick={handleWhatsappQuote}
-              disabled={!monthlyPayment || !downPayment || !months}
+              disabled={!monthlyPayment || downPayment === '' || months === ''}
             >
               <MessageCircle className="h-5 w-5 mr-2" />
               Cotización personalizada
             </Button>
             <Button
-              size="lg" // <-- Añadido
-              className="w-full sm:w-auto" // <-- Añadido
+              size="lg" 
+              className="w-full sm:w-auto"
               onClick={() => setSimulationOpen(false)}
               variant="secondary"
             >
@@ -797,8 +859,8 @@ Me gustaría una cotización formal.
                     ...relatedCar,
                     car_images: relatedCar.car_images || [],
                   }}
-                  onFavorite={() => navigate(`/car/${relatedCar.id}`)}
-                  onContact={() => navigate(`/car/${relatedCar.id}`)}
+                  onFavorite={() => { /* Manejar favorito en tarjeta relacionada */ }}
+                  isFavorite={false} // Ajustar si tienes lógica para favoritos en relacionados
                 />
               ))}
             </div>

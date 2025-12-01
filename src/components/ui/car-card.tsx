@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Heart, Eye, MessageCircle, Phone, Calendar, Gauge, Fuel, Cog, MapPin } from 'lucide-react';
+// Se ha añadido la lógica para el ícono Heart
+import { Heart, Eye, MessageCircle, Phone, Calendar, Gauge, Fuel, Cog, MapPin } from 'lucide-react'; 
 import { Button } from './button';
 import { Badge } from './badge';
 import { Card, CardContent } from './card';
@@ -13,7 +14,8 @@ type Car = Database['public']['Tables']['cars']['Row'] & {
 
 interface CarCardProps {
   car: Car;
-  onFavorite?: (carId: string) => void;
+  // Callback para manejar la acción de agregar/quitar favorito
+  onFavorite?: (carId: string) => void; 
   onContact?: (carId: string) => void;
   isFavorite?: boolean;
 }
@@ -46,11 +48,13 @@ const CarCard = ({ car, onFavorite, onContact, isFavorite = false }: CarCardProp
   };
 
   const handleWhatsApp = () => {
+    // Usando un número de placeholder
     const message = `Hola, estoy interesado en el ${car.brand} ${car.model} ${car.year} por ${formatPrice(car.price)}. ¿Podrías darme más información?`;
     window.open(`https://wa.me/5215551234567?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   const handleCall = () => {
+    // Usando un número de placeholder
     window.open('tel:+5215551234567', '_self');
   };
 
@@ -138,19 +142,37 @@ const CarCard = ({ car, onFavorite, onContact, isFavorite = false }: CarCardProp
 
             {/* Actions */}
             <div className="flex space-x-2">
-              <Button className="flex-1 glow-effect" size="sm" onClick={() => navigate(`/car/${car.id}`)}>
+              <Button 
+                className="flex-1 glow-effect" 
+                size="sm" 
+                onClick={() => navigate(`/car/${car.id}`)}
+              >
                 <Eye className="h-4 w-4 mr-1" />
                 Ver Detalles
               </Button>
-              {/* <Button
-                variant="outline"
-                size="sm"
-                className="glow-effect"
-                onClick={() => onFavorite?.(car.id)}
-              >
-                <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
-              </Button> 
-              <Button variant="outline" size="sm" className="glow-effect" onClick={handleWhatsApp}>
+              
+              {/* === INICIO: BOTÓN DE FAVORITO AGREGADO === */}
+              {onFavorite && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-12 p-0 flex-shrink-0" // Botón cuadrado para acción de corazón
+                  onClick={(e) => {
+                    e.stopPropagation(); // Evita navegar al detalle del auto
+                    onFavorite(car.id);
+                  }}
+                >
+                  <Heart 
+                    className={`h-5 w-5 transition-colors ${
+                      isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground hover:text-red-500'
+                    }`} 
+                  />
+                </Button>
+              )}
+              {/* === FIN: BOTÓN DE FAVORITO AGREGADO === */}
+
+              {/* Botones de contacto (manteniéndose comentados por ahora) */}
+              {/* <Button variant="outline" size="sm" className="glow-effect" onClick={handleWhatsApp}>
                 <MessageCircle className="h-4 w-4" />
               </Button>
               <Button variant="outline" size="sm" className="glow-effect" onClick={handleCall}>

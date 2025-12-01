@@ -12,6 +12,8 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Sucursales from "./pages/Sucursales";
 import AdminCars from "./pages/AdminCars"; 
+// === CAMBIO 1: IMPORTAR EL NUEVO COMPONENTE FAVORITES ===
+import Favorites from "./pages/Favorites"; 
 
 const queryClient = new QueryClient();
 
@@ -28,10 +30,15 @@ const App = () => (
             <Route path="/car/:id" element={<CarDetail />} />
             <Route path="/sell" element={<SellCar />} />
             <Route path="/auth" element={<Auth />} />
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="/sucursales" element={<Sucursales />} />
-            <Route path="*" element={<NotFound />} />
+            {/* === CAMBIO 2: AÑADIR LA RUTA /FAVORITES === */}
+            <Route path="/favorites" element={<Favorites />} /> 
+            
             <Route path="/admin" element={<AdminCars />} /> 
+            {/* NOTA IMPORTANTE: LA RUTA CATCH-ALL "*" DEBE IR AL FINAL */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
