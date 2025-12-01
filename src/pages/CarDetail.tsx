@@ -487,11 +487,11 @@ Me gustaría una cotización formal.
                 className="flex-shrink-0"
                 onClick={handleFavoriteToggle}
               >
-                <Heart 
+                {/*<Heart 
                   className={`h-6 w-6 transition-colors ${
                     isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground hover:text-red-500'
                   }`} 
-                />
+                />*/}
               </Button>
               {/* === FIN BOTÓN DE FAVORITO === */}
             </div>
