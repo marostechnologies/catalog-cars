@@ -1,165 +1,179 @@
-import { useEffect } from 'react';
+import { motion } from 'framer-motion';
 import Navbar from '@/components/ui/navbar';
 import Hero from '@/components/ui/hero';
 import FeaturedCars from '@/components/ui/featured-cars';
 import Carousel from './Carousel';
 
-// ✅ Importar iconos optimizados
-import { Instagram, Facebook, Music2, CheckCircle, Handshake, Shield } from 'lucide-react';
+// ✅ Iconos optimizados
+import { 
+  Instagram, 
+  Facebook, 
+  Music2, 
+  CheckCircle, 
+  Handshake, 
+  Shield, 
+  MapPin, 
+  Phone, 
+  Clock 
+} from 'lucide-react';
 
-// ✅ Redes sociales con componentes reales
 const socialLinks = [
   { name: "Instagram", href: "https://www.instagram.com/autospacemexcar/", icon: Instagram },
   { name: "Facebook", href: "https://www.facebook.com/autospace.mexcar.5", icon: Facebook },
   { name: "TikTok", href: "https://www.tiktok.com/@autospacemexcar", icon: Music2 },
 ];
 
+const stats = [
+  { number: '50+', label: 'Autos Disponibles' },
+  { number: '500+', label: 'Clientes Satisfechos' },
+  { number: '10+', label: 'Años de Experiencia' },
+  { number: '100%', label: 'Recomendación' }
+];
+
 const Index = () => {
   const currentYear = new Date().getFullYear();
 
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('animate');
-        }
-      });
-    });
-
-    const elements = document.querySelectorAll('.fade-in-up');
-    elements.forEach((el) => observer.observe(el));
-
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#020617] selection:bg-blue-500/30 overflow-x-hidden">
+      {/* Navegación y Secciones Principales */}
       <Navbar />
       <Hero />
       <FeaturedCars />
+      
+      {/* Carrusel de Marcas (Fondo Negro) */}
       <Carousel />
 
-      {/* Stats */}
-      <section className="py-16 bg-secondary/10">
-        <div className="container px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-            {[
-              { number: '50+', label: 'Autos Disponibles' },
-              { number: '500+', label: 'Clientes Satisfechos' },
-              { number: '10+', label: 'Años de Experiencia' },
-              { number: '100%', label: 'Recomendación' }
-            ].map((stat) => (
-              <div key={stat.label} className="fade-in-up">
-                <div className="text-4xl font-bold text-primary mb-2">{stat.number}</div>
-                <div className="text-muted-foreground">{stat.label}</div>
-              </div>
+      {/* --- STATS SECTION (ULTRA-RESPONSIVE: 2x2 en Móvil) --- */}
+      <section className="relative py-12 md:py-28 bg-white overflow-hidden">
+        {/* Textura de ruido sutil */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none" />
+        
+        <div className="container px-4 md:px-6 mx-auto relative z-10">
+          {/* grid-cols-2 forzado para móvil, lg:grid-cols-4 para desktop */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-10">
+            {stats.map((stat, index) => (
+              <motion.div 
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1, duration: 0.6 }}
+                className="
+                  flex flex-col justify-center items-center
+                  p-4 sm:p-6 md:p-14 
+                  aspect-square sm:aspect-auto
+                  min-h-[140px] sm:min-h-[180px] md:min-h-[280px]
+                  rounded-[1.5rem] md:rounded-[3rem] 
+                  bg-white border border-slate-100 
+                  shadow-[0_10px_30px_rgba(0,0,0,0.03)] 
+                  text-center group transition-all duration-500
+                  hover:shadow-[0_30px_60px_rgba(0,0,0,0.08)]
+                  hover:-translate-y-2
+                "
+              >
+                <div className="text-3xl sm:text-4xl md:text-7xl font-black text-slate-950 mb-1 md:mb-3 tracking-tighter leading-none transition-transform duration-500 group-hover:scale-105">
+                  {stat.number}
+                </div>
+                <div className="text-[8px] sm:text-[10px] md:text-[12px] font-black uppercase tracking-[0.1em] md:tracking-[0.3em] text-blue-600 leading-tight">
+                  {stat.label}
+                </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Footer - ESTRUCTURA FINAL CON MAPA MINIMALISTA */}
-      <footer className="bg-black text-white py-16">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-gray-700 pb-10">
+      {/* --- FOOTER (RESPONSIVE OPTIMIZED) --- */}
+      <footer className="bg-black text-white pt-20 pb-10 border-t border-white/5 font-sans">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-16 mb-16">
 
-            {/* Columna 1: Logo y Redes Sociales */}
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <img 
-                  src="/JPCars_logo.png" 
-                  alt="MAROS Logo" 
-                  className="h-10 w-auto" 
-                />
-              </div>
-
-              <p className="text-gray-400 text-sm mt-4">
-                Tu destino para encontrar el auto perfecto con la mejor experiencia de compra.
+            {/* Columna 1: Branding */}
+            <div className="sm:col-span-2 lg:col-span-4 space-y-6">
+              <img src="/JPCars_logo.png" alt="Logo" className="h-10 w-auto brightness-200" />
+              <p className="text-slate-400 text-sm leading-relaxed max-w-xs font-medium">
+                Redefiniendo la adquisición de vehículos seminuevos bajo estándares de excelencia.
               </p>
-
-              {/* Íconos optimizados y estilizados */}
-              <div className="flex items-center gap-4 mt-6">
+              <div className="flex gap-3">
                 {socialLinks.map(({ name, href, icon: Icon }) => (
-                  <a
-                    key={name}
-                    href={href}
-                    target="_blank"
+                  <a 
+                    key={name} 
+                    href={href} 
+                    target="_blank" 
                     rel="noopener noreferrer"
-                    aria-label={name}
-                    className="group inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/5 hover:bg-primary transition-all"
+                    className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-blue-600 transition-all group"
                   >
-                    <Icon className="w-5 h-5 text-gray-400 group-hover:text-black transition-colors" />
+                    <Icon className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" />
                   </a>
                 ))}
               </div>
             </div>
 
-            {/* Columna 2: Enfocada en la Venta y Transparencia */}
-            <div>
-              <h3 className="text-lg font-semibold mb-5 text-white">Transparencia</h3>
-              <ul className="space-y-3 text-gray-400 text-sm">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-primary" />
-                  Garantía de Documentos
-                </li>
-                <li className="flex items-center gap-2">
-                  <Handshake className="w-4 h-4 text-primary" />
-                  Planes de Financiamiento
-                </li>
-                <li className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-primary" />
-                  Seguro y Asesoría Legal
-                </li>
+            {/* Columna 2: Confianza */}
+            <div className="lg:col-span-2">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white mb-6">Confianza</h3>
+              <ul className="space-y-4">
+                {[
+                  { icon: CheckCircle, text: "Garantía Legal" },
+                  { icon: Handshake, text: "Finanzas" },
+                  { icon: Shield, text: "Seguridad" }
+                ].map((item) => (
+                  <li key={item.text} className="flex items-center gap-3 text-sm text-slate-400 font-medium">
+                    <item.icon className="w-4 h-4 text-blue-500 shrink-0" />
+                    {item.text}
+                  </li>
+                ))}
               </ul>
-
-              <div className="mt-8">
-              </div>
             </div>
 
-            {/* Columna 3: Información de Contacto */}
-            <div>
-              <h3 className="text-lg font-semibold mb-5 text-white">Información</h3>
-              <ul className="space-y-3 text-gray-400 text-sm">
-                <li className="flex flex-col">
-                  <span className="font-semibold text-gray-300">Sucursal Tlalnepantla</span>
-                  <a href="tel:+525529310292" className="hover:text-primary transition-colors">
+            {/* Columna 3: Contacto */}
+            <div className="lg:col-span-3">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white mb-6">Contacto</h3>
+              <div className="space-y-5">
+                <div className="flex gap-3">
+                  <MapPin className="w-5 h-5 text-blue-500 shrink-0" />
+                  <p className="text-sm text-slate-400 leading-snug">
+                    C. Augustin Melgar 23, Niños Heroes, Tlalnepantla, Méx.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Phone className="w-5 h-5 text-blue-500 shrink-0" />
+                  <a href="tel:+525529310292" className="text-sm text-slate-400 hover:text-white transition-colors">
                     +52 55 2931 0292
                   </a>
-                  <span className="text-xs pt-1">
-                    Dirección: C. Augustin Melgar 23, Niños Heroes, 54017 Tlalnepantla, Méx.
-                  </span>
-                </li>
-                <li className="flex flex-col pt-3">
-                  <span className="font-semibold text-gray-300">Horario</span>
-                  <span>Lun - Dom: 10:00 - 18:00</span>
-                </li>
-              </ul>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Clock className="w-5 h-5 text-blue-500 shrink-0" />
+                  <span className="text-sm text-slate-400 font-medium italic">Lun - Dom: 10:00 - 18:00</span>
+                </div>
+              </div>
             </div>
 
-            {/* Columna 4: Solo Ubicación/Mapa */}
-            <div>
-              <h3 className="text-lg font-semibold mb-5 text-white">Ubicación</h3>
-
-              <div className="mb-6 h-32 w-full bg-gray-800 rounded overflow-hidden">
+            {/* Columna 4: Ubicación */}
+            <div className="sm:col-span-2 lg:col-span-3">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white mb-6">Ubicación</h3>
+              <div className="rounded-[2rem] overflow-hidden h-40 border border-white/10 grayscale opacity-60 hover:grayscale-0 transition-all duration-700">
                 <iframe 
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3759.530060164913!2d-99.1999519247823!3d19.56177918174536!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d21d7b10e4288b%3A0xef64360ecc31296c!2sAuto%20Space!5e0!3m2!1ses-419!2smx!4v1757282118142!5m2!1ses-419!2smx"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3760.360123456789!2d-99.2081234!3d19.5371234!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTnCsDMyJzEzLjYiTiA5OcKwMTInMjkuMiJX!5e0!3m2!1ses!2smx!4v1234567890" 
                   width="100%" 
                   height="100%" 
-                  style={{ border: 0 }}
-                  allowFullScreen
+                  style={{ border: 0 }} 
+                  allowFullScreen 
                   loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title="Ubicación de Sucursal Tlalnepantla"
                 />
               </div>
-              
-              {/* Eliminado el <ul> con las preguntas clave */}
             </div>
           </div>
 
-          {/* Footer final */}
-          <div className="mt-10 text-center text-gray-500 text-sm">
-            <p>© {currentYear} JPCars. Todos los derechos reservados.</p>
+          {/* Copyright Final */}
+          <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-center">
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">
+              © {currentYear} JPCars. All Rights Reserved.
+            </p>
+            <div className="flex gap-8 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">
+              <a href="#" className="hover:text-white transition-colors">Privacidad</a>
+              <a href="#" className="hover:text-white transition-colors">Términos</a>
+            </div>
           </div>
         </div>
       </footer>

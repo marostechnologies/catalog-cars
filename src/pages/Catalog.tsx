@@ -220,8 +220,8 @@ const Catalog = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
           >
-            <h1 className="text-5xl md:text-6xl font-extrabold mb-4 tracking-tight">Catálogo de Autos</h1>
-            <p className="text-lg md:text-2xl opacity-90">Explora, filtra y encuentra tu próximo vehículo</p>
+            <h1 className="text-5xl md:text-7xl font-black mb-4 tracking-tighter uppercase italic">Catálogo de Autos</h1>
+            <p className="text-lg md:text-2xl font-medium tracking-tight opacity-90">Explora, filtra y encuentra tu próximo vehículo</p>
           </motion.div>
         </div>
       </section>
@@ -230,10 +230,10 @@ const Catalog = () => {
       <section className="w-full bg-white border-b shadow-md">
         <div className="container px-4 py-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
           <Select value={selectedBrand} onValueChange={setSelectedBrand}>
-            <SelectTrigger className="rounded-xl shadow-sm"><SelectValue placeholder="Marca" /></SelectTrigger>
+            <SelectTrigger className="rounded-xl shadow-sm font-bold text-[11px] uppercase tracking-widest"><SelectValue placeholder="Marca" /></SelectTrigger>
             <SelectContent>
               {brands.map(brand => (
-                <SelectItem key={brand} value={brand}>{brand}</SelectItem>
+                <SelectItem key={brand} value={brand} className="font-bold text-[11px] uppercase">{brand}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -242,14 +242,14 @@ const Catalog = () => {
             placeholder="Modelo"
             value={selectedModel}
             onChange={e => setSelectedModel(e.target.value)}
-            className="rounded-xl shadow-sm"
+            className="rounded-xl shadow-sm font-bold text-[11px] uppercase tracking-widest"
           />
 
           <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="rounded-xl shadow-sm"><SelectValue placeholder="Año" /></SelectTrigger>
+            <SelectTrigger className="rounded-xl shadow-sm font-bold text-[11px] uppercase tracking-widest"><SelectValue placeholder="Año" /></SelectTrigger>
             <SelectContent>
               {years.map(y => (
-                <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                <SelectItem key={y} value={y.toString()} className="font-bold text-[11px]">{y}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -259,25 +259,27 @@ const Catalog = () => {
             type="number"
             value={selectedMaxPrice}
             onChange={e => setSelectedMaxPrice(e.target.value)}
-            className="rounded-xl shadow-sm"
+            className="rounded-xl shadow-sm font-bold text-[11px] uppercase tracking-widest"
           />
 
           <div className="flex gap-3 sm:col-span-2 lg:col-span-2">
-            <Button className="flex-1 rounded-xl shadow-md" onClick={handleSearch}>Buscar</Button>
-            <Button variant="outline" className="flex-1 rounded-xl" onClick={clearFilters}>Limpiar</Button>
+            <Button className="flex-1 rounded-xl shadow-md font-black text-[11px] uppercase tracking-[0.2em]" onClick={handleSearch}>Buscar</Button>
+            <Button variant="outline" className="flex-1 rounded-xl font-black text-[11px] uppercase tracking-[0.2em]" onClick={clearFilters}>Limpiar</Button>
           </div>
         </div>
       </section>
 
       {/* Resultados */}
       <section className="py-12">
-        <div className="container px-4">
+        {/* Cambiamos px-4 por px-2 en móvil para aprovechar más espacio */}
+        <div className="container px-2 sm:px-4">
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            /* Skeleton adaptado a 2 columnas en móvil */
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-8">
               {Array.from({ length: 6 }).map((_, i) => (
                 <motion.div
                   key={i}
-                  className="bg-muted rounded-xl h-80 animate-pulse"
+                  className="bg-muted rounded-xl h-48 md:h-80 animate-pulse"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: i * 0.1 }}
@@ -290,13 +292,15 @@ const Catalog = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
-              <h3 className="text-3xl font-bold mb-4">No se encontraron vehículos</h3>
-              <p className="text-muted-foreground mb-6">Ajusta los filtros para explorar más opciones</p>
-              <Button onClick={clearFilters} className="rounded-xl">Ver todos los autos</Button>
+              <h3 className="text-4xl font-black tracking-tighter mb-4 uppercase italic">No se encontraron vehículos</h3>
+              <p className="text-muted-foreground font-medium mb-6">Ajusta los filtros para explorar más opciones</p>
+              <Button onClick={clearFilters} className="rounded-xl font-black text-[11px] uppercase tracking-widest px-10">Ver todos los autos</Button>
             </motion.div>
           ) : (
             <motion.div
-              className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+              /* CAMBIO AQUÍ: grid-cols-2 para móviles, md:grid-cols-2, lg:grid-cols-3 */
+              /* gap-3 para que las cards no estén pegadas pero aprovechen el ancho */
+              className="grid gap-3 md:gap-8 grid-cols-2 md:grid-cols-2 lg:grid-cols-3"
               initial="hidden"
               animate="visible"
               variants={{

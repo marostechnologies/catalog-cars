@@ -1,24 +1,30 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-// Se ha añadido la lógica para el ícono Heart
-import { Heart, Eye, MessageCircle, Phone, Calendar, Gauge, Fuel, Cog, MapPin } from 'lucide-react'; 
+import { Heart, Eye, Calendar, Gauge, Fuel, Cog } from 'lucide-react'; 
 import { Button } from './button';
 import { Badge } from './badge';
 import { Card, CardContent } from './card';
 import type { Database } from '@/integrations/supabase/types';
 
 type Car = Database['public']['Tables']['cars']['Row'] & {
-  car_images?: { image_url: string; is_primary: boolean }[]; // relación con imágenes
+  car_images?: { image_url: string; is_primary: boolean }[];
 };
 
 interface CarCardProps {
   car: Car;
-  // Callback para manejar la acción de agregar/quitar favorito
   onFavorite?: (carId: string) => void; 
   onContact?: (carId: string) => void;
   isFavorite?: boolean;
 }
+
+// Estilos de texto Brutalistas optimizados para responsive
+const BRUTAL_STYLES = {
+  // En móvil el texto es ligeramente más pequeño para evitar saltos de línea feos
+  title: "font-black italic tracking-tighter uppercase leading-[0.9] text-[15px] sm:text-lg md:text-xl",
+  label: "font-bold text-[9px] md:text-[10px] tracking-widest uppercase text-muted-foreground",
+  price: "font-black italic tracking-tighter text-sm sm:text-base md:text-xl text-primary",
+};
 
 const CarCard = ({ car, onFavorite, onContact, isFavorite = false }: CarCardProps) => {
   const navigate = useNavigate();
@@ -34,12 +40,14 @@ const CarCard = ({ car, onFavorite, onContact, isFavorite = false }: CarCardProp
   };
 
   const formatMileage = (mileage?: number) => {
-    if (!mileage) return 'N/A';
-    return new Intl.NumberFormat('es-MX').format(mileage) + ' km';
+    if (!mileage && mileage !== 0) return 'N/A';
+    // Abreviar km en móvil para ganar espacio
+    const value = new Intl.NumberFormat('es-MX').format(mileage);
+    return `${value} km`;
   };
 
   const getConditionColor = (condition?: string) => {
-    switch (condition) {
+    switch (condition?.toLowerCase()) {
       case 'nuevo': return 'bg-green-500';
       case 'seminuevo': return 'bg-blue-500';
       case 'usado': return 'bg-orange-500';
@@ -47,18 +55,6 @@ const CarCard = ({ car, onFavorite, onContact, isFavorite = false }: CarCardProp
     }
   };
 
-  const handleWhatsApp = () => {
-    // Usando un número de placeholder
-    const message = `Hola, estoy interesado en el ${car.brand} ${car.model} ${car.year} por ${formatPrice(car.price)}. ¿Podrías darme más información?`;
-    window.open(`https://wa.me/5215551234567?text=${encodeURIComponent(message)}`, '_blank');
-  };
-
-  const handleCall = () => {
-    // Usando un número de placeholder
-    window.open('tel:+5215551234567', '_self');
-  };
-
-  // Tomar la imagen principal si existe, si no usar la primera
   const mainImage =
     car.car_images?.find(img => img.is_primary)?.image_url ||
     car.car_images?.[0]?.image_url ||
@@ -68,15 +64,15 @@ const CarCard = ({ car, onFavorite, onContact, isFavorite = false }: CarCardProp
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -5 }}
+      whileHover={{ y: -8 }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      className="group"
+      className="group h-full"
     >
-      <Card className="overflow-hidden car-hover bg-gradient-card border-0 shadow-subtle hover:shadow-car">
-        <div className="relative">
-          {/* Image */}
-          <div className="relative h-48 overflow-hidden bg-muted">
+      <Card className="overflow-hidden border-0 shadow-subtle hover:shadow-car bg-gradient-card rounded-[24px] md:rounded-[32px] transition-all duration-500 h-full flex flex-col">
+        <div className="relative flex-1 flex flex-col">
+          {/* Image Section - Altura reducida en móvil (h-32) para no ocupar toda la pantalla */}
+          <div className="relative h-32 sm:h-40 md:h-52 overflow-hidden bg-muted">
             <img
               src={mainImage}
               alt={`${car.brand} ${car.model}`}
@@ -86,98 +82,84 @@ const CarCard = ({ car, onFavorite, onContact, isFavorite = false }: CarCardProp
               onLoad={() => setImageLoaded(true)}
             />
 
-            {/* Condition Badge */}
-            <div className="absolute top-3 left-3">
-              <Badge className={`${getConditionColor(car.condition)} text-white capitalize`}>
+            {/* Condition Badge - Más pequeño en móvil */}
+            <div className="absolute top-2 left-2 md:top-4 md:left-4">
+              <Badge className={`${getConditionColor(car.condition)} text-white capitalize font-bold rounded-full border-none px-2 md:px-3 text-[8px] md:text-xs`}>
                 {car.condition || 'usado'}
               </Badge>
             </div>
 
-            {/* Price Badge */}
-            <div className="absolute top-3 right-3">
-              <Badge variant="secondary" className="bg-background/90 text-primary font-bold">
+            {/* Price Badge - Ajustado para pantallas pequeñas */}
+            <div className="absolute top-2 right-2 md:top-4 md:right-4">
+              <Badge variant="secondary" className="bg-background/90 text-primary font-black italic tracking-tighter text-[10px] sm:text-xs md:text-sm px-2 py-0.5 md:px-3 md:py-1 rounded-lg md:rounded-xl shadow-lg border-none">
                 {formatPrice(car.price)}
               </Badge>
             </div>
           </div>
 
-          <CardContent className="p-4">
-            {/* Title */}
-            <div className="mb-3">
-              <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
+          <CardContent className="p-3 md:p-5 flex flex-col flex-1">
+            {/* Title & Year */}
+            <div className="mb-2 md:mb-4 h-10 md:h-12 flex flex-col justify-center">
+              <h3 className={`${BRUTAL_STYLES.title} text-foreground group-hover:text-primary transition-colors line-clamp-2`}>
                 {car.brand} {car.model}
               </h3>
-              <p className="text-sm text-muted-foreground">{car.year}</p>
+              <p className="text-[9px] md:text-xs font-bold text-muted-foreground mt-0.5 uppercase tracking-widest">
+                {car.year}
+              </p>
             </div>
 
-            {/* Specs */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <Calendar className="h-4 w-4 text-primary" />
-                <span>{car.year}</span>
+            {/* Specs Grid - Optimizado 2x2 */}
+            <div className="grid grid-cols-2 gap-y-2 gap-x-1 md:gap-y-3 md:gap-x-2 mb-4 md:mb-5">
+              <div className="flex items-center space-x-1 md:space-x-2 text-[9px] md:text-[11px] font-bold uppercase tracking-tight text-muted-foreground">
+                <Calendar className="h-3 w-3 md:h-3.5 md:w-3.5 text-primary flex-shrink-0" />
+                <span className="truncate">{car.year}</span>
               </div>
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <Gauge className="h-4 w-4 text-primary" />
-                <span>{formatMileage(car.mileage)}</span>
+              <div className="flex items-center space-x-1 md:space-x-2 text-[9px] md:text-[11px] font-bold uppercase tracking-tight text-muted-foreground">
+                <Gauge className="h-3 w-3 md:h-3.5 md:w-3.5 text-primary flex-shrink-0" />
+                <span className="truncate">{formatMileage(car.mileage)}</span>
               </div>
               {car.fuel_type && (
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <Fuel className="h-4 w-4 text-primary" />
-                  <span className="capitalize">{car.fuel_type}</span>
+                <div className="flex items-center space-x-1 md:space-x-2 text-[9px] md:text-[11px] font-bold uppercase tracking-tight text-muted-foreground">
+                  <Fuel className="h-3 w-3 md:h-3.5 md:w-3.5 text-primary flex-shrink-0" />
+                  <span className="truncate">{car.fuel_type}</span>
                 </div>
               )}
               {car.transmission && (
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <Cog className="h-4 w-4 text-primary" />
-                  <span className="capitalize">{car.transmission}</span>
-                </div>
-              )}
-              {car.sucursal && (
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4 text-primary" />
-                  <span className="capitalize">{car.sucursal}</span>
+                <div className="flex items-center space-x-1 md:space-x-2 text-[9px] md:text-[11px] font-bold uppercase tracking-tight text-muted-foreground">
+                  <Cog className="h-3 w-3 md:h-3.5 md:w-3.5 text-primary flex-shrink-0" />
+                  <span className="truncate">{car.transmission === 'Automático' ? 'Auto' : car.transmission}</span>
                 </div>
               )}
             </div>
 
-            {/* Actions */}
-            <div className="flex space-x-2">
+            {/* Actions - Botones más compactos en móvil */}
+            <div className="mt-auto flex space-x-1.5 md:space-x-2">
               <Button 
-                className="flex-1 glow-effect" 
+                className="flex-1 glow-effect rounded-xl md:rounded-2xl font-black italic uppercase tracking-tighter h-9 md:h-11 text-[10px] md:text-sm" 
                 size="sm" 
                 onClick={() => navigate(`/car/${car.id}`)}
               >
-                <Eye className="h-4 w-4 mr-1" />
-                Ver Detalles
+                <Eye className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-1.5" />
+                Detalles
               </Button>
               
-              {/* === INICIO: BOTÓN DE FAVORITO AGREGADO === */}
               {onFavorite && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-12 p-0 flex-shrink-0" // Botón cuadrado para acción de corazón
+                  className="w-9 h-9 md:w-11 md:h-11 p-0 flex-shrink-0 rounded-xl md:rounded-2xl border-2 hover:bg-red-50 hover:border-red-200 transition-all"
                   onClick={(e) => {
-                    e.stopPropagation(); // Evita navegar al detalle del auto
+                    e.stopPropagation();
                     onFavorite(car.id);
                   }}
                 >
                   <Heart 
-                    className={`h-5 w-5 transition-colors ${
-                      isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground hover:text-red-500'
+                    className={`h-4 w-4 md:h-5 md:w-5 transition-colors ${
+                      isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground'
                     }`} 
                   />
                 </Button>
               )}
-              {/* === FIN: BOTÓN DE FAVORITO AGREGADO === */}
-
-              {/* Botones de contacto (manteniéndose comentados por ahora) */}
-              {/* <Button variant="outline" size="sm" className="glow-effect" onClick={handleWhatsApp}>
-                <MessageCircle className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="sm" className="glow-effect" onClick={handleCall}>
-                <Phone className="h-4 w-4" />
-              </Button> */}
             </div>
           </CardContent>
         </div>

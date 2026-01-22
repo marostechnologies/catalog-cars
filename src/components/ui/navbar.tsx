@@ -1,14 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Heart, User, Search, Phone, Clock, Instagram, Facebook, Music2, LogOut, Settings } from 'lucide-react';
+import { Menu, X, Heart, User, Search, Phone, Clock, Instagram, Facebook, Music2, LogOut, Settings, ShieldCheck } from 'lucide-react'; // Añadí ShieldCheck para el estilo
 import { Button } from './button';
-// Nota: Deberás tener estos componentes y hooks definidos en tu proyecto.
-// Simulación del hook de autenticación
 import { useAuth } from '@/hooks/useAuth';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from './dropdown-menu';
 import { Avatar, AvatarFallback } from './avatar';
-// Simulación de sonner
 import { toast } from 'sonner';
 
 const sucursales = [
@@ -32,34 +29,36 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [showContact, setShowContact] = useState(false);
   
-  // Asumiendo que useAuth proporciona user, isAdmin y signOut
   const { user, isAdmin, signOut } = useAuth(); 
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      setScrolled(window.scrollY > 20);
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Determina si estamos en una página de detalle de auto (ej. /car/123)
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
+
   const isCarDetailPage = location.pathname.startsWith('/car/');
 
   const navItems = [
-    { name: 'Inicio', href: '/' },
-    { name: 'Catálogo', href: '/catalog' },
-    { name: 'Sucursales', href: '/sucursales' },
+    { name: 'INICIO', href: '/' },
+    { name: 'CATÁLOGO', href: '/catalog' },
+    { name: 'SUCURSALES', href: '/sucursales' },
   ];
 
-  const handleNavigation = (href) => {
+  const handleNavigation = (href: string) => {
     navigate(href);
     setIsOpen(false);
   };
   
   const handleFavorites = () => {
     if (!user) {
-      toast.error('Debes iniciar sesión para ver favoritos');
+      toast.error('Inicia sesión para ver favoritos');
       navigate('/auth');
       return;
     }
@@ -70,7 +69,7 @@ const Navbar = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
-      toast.success('Sesión cerrada exitosamente');
+      toast.success('Sesión cerrada');
       navigate('/');
     } catch (error) {
       toast.error('Error al cerrar sesión');
@@ -78,7 +77,7 @@ const Navbar = () => {
     setIsOpen(false);
   };
 
-  const getUserInitials = (name) => {
+  const getUserInitials = (name: string) => {
     if (!name) return 'U';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
@@ -86,264 +85,252 @@ const Navbar = () => {
   return (
     <>
       <motion.nav 
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 text-white ${
-          scrolled || isCarDetailPage ? 'bg-black shadow-lg' : 'bg-transparent'
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
+          scrolled || isCarDetailPage || isOpen 
+            ? 'bg-black/90 backdrop-blur-xl border-b border-white/5 py-3' 
+            : 'bg-transparent py-5'
         }`}
       >
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
+        <div className="container mx-auto px-6">
+          <div className="flex items-center justify-between">
+            
             <motion.div 
-              whileHover={{ scale: 1.05 }}
-              className="flex items-center space-x-2 cursor-pointer"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="relative z-10 cursor-pointer group"
               onClick={() => navigate('/')}
             >
               <img 
                 src="/JPCars_logo.png" 
-                alt="Autospace Logo" 
-                // CLASES MODIFICADAS AQUÍ: Usamos h-14 para un tamaño más visible.
-                className="h-14 md:h-14 w-auto" 
+                alt="JPCars Logo" 
+                className="h-10 md:h-12 w-auto transition-all duration-300 group-hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]" 
               />
             </motion.div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              {navItems.map((item, index) => (
-                <motion.button
+            <div className="hidden md:flex items-center space-x-10">
+              {navItems.map((item) => (
+                <button
                   key={item.name}
                   onClick={() => handleNavigation(item.href)}
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="text-white hover:text-primary transition-colors duration-300 relative group"
+                  className="text-[11px] font-black tracking-[0.25em] text-white/70 hover:text-white transition-all duration-300 relative group"
                 >
                   {item.name}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
-                </motion.button>
+                  <span className={`absolute -bottom-1 left-0 h-[2px] bg-blue-600 transition-all duration-300 ${location.pathname === item.href ? 'w-full' : 'w-0 group-hover:w-full'}`} />
+                </button>
               ))}
             </div>
 
-            {/* Desktop Actions */}
-            <div className="hidden md:flex items-center space-x-4">
-              <Button variant="ghost" size="sm" className="text-white glow-effect" onClick={() => navigate('/catalog')}>
+            <div className="hidden md:flex items-center space-x-2">
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-full" onClick={() => navigate('/catalog')}>
                 <Search className="h-4 w-4" />
               </Button>
-              {/* Botón de Favoritos (Icono Heart) - Se mantiene como única forma de acceso directo */}
-              <Button variant="ghost" size="sm" className="text-white glow-effect" onClick={handleFavorites}>
-                <Heart className="h-4 w-4" />
+              
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-full" onClick={handleFavorites}>
+                <Heart className={`h-4 w-4 ${location.pathname === '/favorites' ? 'fill-blue-600 text-blue-600' : ''}`} />
               </Button>
               
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                      <Avatar className="h-8 w-8">
-                        {/* <AvatarImage src="" alt="Avatar" /> */}
-                        <AvatarFallback className="bg-gradient-to-r from-red-500 to-red-600 text-white">
+                    <button className="flex items-center ml-2 p-1 rounded-full hover:bg-white/10 transition-colors">
+                      <Avatar className="h-8 w-8 border border-white/20">
+                        <AvatarFallback className="bg-gradient-to-br from-blue-600 to-blue-800 text-white text-[10px] font-bold">
                           {getUserInitials(user.user_metadata?.full_name)}
                         </AvatarFallback>
                       </Avatar>
-                    </Button>
+                    </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56 bg-black border-border" align="end" forceMount>
-                    <div className="flex items-center justify-start gap-2 p-2">
-                      <div className="flex flex-col space-y-1 leading-none text-white">
-                        {user.user_metadata?.full_name && (
-                          <p className="font-medium">{user.user_metadata.full_name}</p>
-                        )}
-                        <p className="w-[200px] truncate text-sm text-muted-foreground">
-                          {user.email}
-                        </p>
-                      </div>
+                  <DropdownMenuContent className="w-56 bg-[#0a0a0a]/95 backdrop-blur-2xl border-white/10 text-white" align="end">
+                    <div className="p-4 border-b border-white/5">
+                      <p className="text-xs font-black tracking-widest uppercase text-blue-500 mb-1">Usuario</p>
+                      <p className="text-sm font-bold truncate">{user.user_metadata?.full_name || 'Mi Perfil'}</p>
+                      <p className="text-[10px] text-white/40 truncate">{user.email}</p>
                     </div>
-                    {/* DROP DOWN ITEM "Mis Favoritos" ELIMINADO AQUÍ */}
-                    
                     {isAdmin && (
-                      <>
-                        <DropdownMenuSeparator className="bg-border" />
-                        <DropdownMenuItem onClick={() => navigate('/admin')} className="text-white hover:bg-gray-800">
-                          <Settings className="mr-2 h-4 w-4" />
-                          <span>Panel Admin</span>
-                        </DropdownMenuItem>
-                      </>
+                      <DropdownMenuItem onClick={() => navigate('/admin')} className="focus:bg-white/10 p-3 cursor-pointer">
+                        <Settings className="mr-3 h-4 w-4 text-blue-500" />
+                        <span className="text-xs font-bold uppercase tracking-wider">Panel Admin</span>
+                      </DropdownMenuItem>
                     )}
-                    <DropdownMenuSeparator className="bg-border" />
-                    <DropdownMenuItem onClick={handleSignOut} className="text-red-500 hover:bg-gray-800">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Cerrar Sesión</span>
+                    <DropdownMenuItem onClick={handleSignOut} className="focus:bg-red-500/20 text-red-500 p-3 cursor-pointer">
+                      <LogOut className="mr-3 h-4 w-4" />
+                      <span className="text-xs font-bold uppercase tracking-wider">Cerrar Sesión</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Button variant="ghost" size="sm" className="text-white glow-effect" onClick={() => navigate('/auth')}>
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-full" onClick={() => navigate('/auth')}>
                   <User className="h-4 w-4" />
                 </Button>
               )}
-              <Button size="sm" className="glow-effect" onClick={() => setShowContact(true)}>
+              
+              <Button 
+                onClick={() => setShowContact(true)}
+                className="ml-4 bg-white text-black hover:bg-slate-200 rounded-full px-6 h-9 text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-[0_10px_20px_rgba(255,255,255,0.1)]"
+              >
                 Contacto
               </Button>
             </div>
 
-            {/* Mobile Menu Button */}
             <Button
               variant="ghost"
-              size="sm"
-              className="md:hidden text-white"
+              size="icon"
+              className="md:hidden text-white relative z-50"
               onClick={() => setIsOpen(!isOpen)}
             >
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
           </div>
-
-          {/* Mobile Navigation */}
-          <AnimatePresence>
-            {isOpen && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="md:hidden bg-black text-white border-t border-border"
-              >
-                <div className="py-4 space-y-4">
-                  {navItems.map((item) => (
-                    <button
-                      key={item.name}
-                      onClick={() => handleNavigation(item.href)}
-                      className="block w-full text-left px-4 py-2 hover:text-primary hover:bg-muted/50 transition-colors"
-                    >
-                      {item.name}
-                    </button>
-                  ))}
-                  
-                  <div className="px-4">
-                    {user ? (
-                      <>
-                        <div className="border-t pt-4 mt-4">
-                          <div className="flex items-center gap-2 mb-4">
-                            <Avatar className="h-8 w-8">
-                              {/* <AvatarImage src="" alt="Avatar" /> */}
-                              <AvatarFallback className="bg-gradient-to-r from-red-500 to-red-600 text-white">
-                                {getUserInitials(user.user_metadata?.full_name)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium text-sm">{user.user_metadata?.full_name}</p>
-                              <p className="text-xs text-muted-foreground">{user.email}</p>
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            {/* BOTÓN "Mis Favoritos" ELIMINADO DE LA SECCIÓN DE USUARIO MÓVIL */}
-                            
-                            {isAdmin && (
-                              <Button
-                                variant="ghost"
-                                onClick={() => handleNavigation('/admin')}
-                                className="w-full justify-start text-white hover:bg-gray-800"
-                              >
-                                <Settings className="mr-2 h-4 w-4" />
-                                Panel Admin
-                              </Button>
-                            )}
-                            <Button
-                              variant="ghost"
-                              onClick={handleSignOut}
-                              className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
-                            >
-                              <LogOut className="mr-2 h-4 w-4" />
-                              Cerrar Sesión
-                            </Button>
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      <Button
-                        variant="default"
-                        onClick={() => handleNavigation('/auth')}
-                        className="w-full"
-                      >
-                        <User className="mr-2 h-4 w-4" />
-                        Iniciar Sesión
-                      </Button>
-                    )}
-                    
-                    <div className="flex items-center justify-center space-x-4 pt-4 mt-4 border-t border-border">
-                      <Button variant="ghost" size="sm" onClick={() => handleNavigation('/catalog')}>
-                        <Search className="h-4 w-4" />
-                      </Button>
-                      {/* Botón de Favoritos (Icono Heart) - Se mantiene aquí */}
-                      <Button variant="ghost" size="sm" onClick={handleFavorites}>
-                        <Heart className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" onClick={() => setShowContact(true)}>
-                        Contacto
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
+
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: '100vh' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="fixed inset-0 top-0 bg-black/95 backdrop-blur-2xl md:hidden z-[40] flex flex-col p-8 pt-24"
+            >
+              <div className="flex flex-col space-y-8 mt-10">
+                {navItems.map((item) => (
+                  <button
+                    key={item.name}
+                    onClick={() => handleNavigation(item.href)}
+                    className="text-3xl font-black text-white tracking-tighter text-left"
+                  >
+                    {item.name}
+                  </button>
+                ))}
+              </div>
+              
+              <div className="mt-auto space-y-6 pb-12">
+                <div className="h-[1px] bg-white/10 w-full" />
+                <div className="flex flex-col gap-4">
+                  
+                  {!user ? (
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => navigate('/auth')} 
+                      className="text-white border border-white/10 rounded-full w-full py-6 flex justify-start px-6"
+                    >
+                      <User className="h-5 w-5 mr-3 text-blue-600" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Iniciar Sesión</span>
+                    </Button>
+                  ) : (
+                    <div className="flex flex-col space-y-4">
+                      <div className="flex items-center gap-4 px-2 mb-2">
+                        <Avatar className="h-12 w-12 border border-white/20">
+                          <AvatarFallback className="bg-gradient-to-br from-blue-600 to-blue-800 text-white font-bold">
+                            {getUserInitials(user.user_metadata?.full_name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <p className="text-white text-sm font-black uppercase tracking-widest">
+                            {user.user_metadata?.full_name || 'Mi Perfil'}
+                          </p>
+                          <p className="text-white/40 text-[10px]">{user.email}</p>
+                          <button onClick={handleSignOut} className="text-red-500 text-[9px] font-black uppercase mt-1 text-left">
+                            Cerrar Sesión
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* ARREGLO: PANEL ADMIN EN MÓVIL */}
+                      {isAdmin && (
+                        <Button 
+                          onClick={() => navigate('/admin')} 
+                          className="bg-zinc-900 border border-blue-600/50 text-white rounded-full w-full py-6 h-auto flex justify-start px-6 transition-all active:scale-95"
+                        >
+                          <ShieldCheck className="h-5 w-5 mr-3 text-blue-500" />
+                          <span className="text-[10px] font-black uppercase tracking-widest">Panel de Administración</span>
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex gap-4">
+                    <Button variant="ghost" size="icon" onClick={handleFavorites} className="text-white border border-white/10 rounded-full w-12 h-12">
+                      <Heart className={`h-5 w-5 ${location.pathname === '/favorites' ? 'fill-blue-600 text-blue-600' : ''}`} />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => navigate('/catalog')} className="text-white border border-white/10 rounded-full w-12 h-12">
+                      <Search className="h-5 w-5" />
+                    </Button>
+                  </div>
+                  <Button 
+                    onClick={() => { setShowContact(true); setIsOpen(false); }}
+                    className="bg-blue-600 text-white rounded-full w-full py-6 h-auto text-[10px] font-black uppercase tracking-widest"
+                  >
+                    Hablar con un asesor
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.nav>
 
-      {/* Modal Contacto (sin cambios) */}
+      {/* MODAL DE CONTACTO (Sin cambios) */}
       <AnimatePresence>
         {showContact && (
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }} 
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
-            onClick={() => setShowContact(false)}
-          >
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
             <motion.div 
-              initial={{ scale: 0.8, opacity: 0 }} 
-              animate={{ scale: 1, opacity: 1 }} 
-              exit={{ scale: 0.8, opacity: 0 }} 
-              className="bg-white text-black rounded-xl shadow-xl p-6 max-w-md w-full"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+              onClick={() => setShowContact(false)}
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }} 
+              animate={{ scale: 1, opacity: 1, y: 0 }} 
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative bg-[#0a0a0a] border border-white/10 text-white rounded-[2.5rem] shadow-2xl p-8 md:p-12 max-w-lg w-full overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-2xl font-bold mb-4 text-center">Contacto</h2>
+              <div className="absolute top-0 right-0 p-6">
+                <button onClick={() => setShowContact(false)} className="text-white/40 hover:text-white transition-colors">
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="text-center mb-10">
+                <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4 block">Asistencia</span>
+                <h2 className="text-4xl font-black tracking-tighter italic">CONTACTO.</h2>
+              </div>
+
               <div className="space-y-4">
                 {sucursales.map((sucursal) => (
-                  <div key={sucursal.nombre} className="p-4 border rounded-lg hover:shadow-md transition">
-                    <h3 className="font-semibold">{sucursal.nombre}</h3>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <Phone className="h-4 w-4 text-primary" />
-                      <a href={`tel:${sucursal.telefono}`} className="text-blue-600 hover:underline">
-                        {sucursal.telefono}
+                  <div key={sucursal.nombre} className="p-6 rounded-3xl bg-white/[0.03] border border-white/5 space-y-4 transition-all hover:bg-white/[0.05]">
+                    <h3 className="text-sm font-bold text-white/90">{sucursal.nombre}</h3>
+                    <div className="flex flex-col gap-3">
+                      <a href={`tel:${sucursal.telefono}`} className="flex items-center gap-4 text-blue-400 hover:text-blue-300 transition-colors">
+                        <Phone className="h-4 w-4" />
+                        <span className="text-sm font-bold tracking-tight">{sucursal.telefono}</span>
                       </a>
-                    </div>
-                    <div className="flex items-center space-x-2 mt-1 text-gray-600">
-                      <Clock className="h-4 w-4 text-primary" />
-                      <p>{sucursal.horario}</p>
+                      <div className="flex items-center gap-4 text-white/40">
+                        <Clock className="h-4 w-4" />
+                        <span className="text-xs font-medium">{sucursal.horario}</span>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold text-center mb-2">Síguenos</h3>
-                <div className="flex justify-center space-x-6">
-                  {socialLinks.map((social) => (
-                    <a 
-                      key={social.name} 
-                      href={social.href} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-gray-700 hover:text-primary transition"
-                    >
-                      <social.icon className="h-6 w-6" />
-                    </a>
-                  ))}
-                </div>
-              </div>
-              <div className="mt-6 text-center">
-                <Button onClick={() => setShowContact(false)}>Cerrar</Button>
+
+              <div className="mt-10 flex justify-center gap-6">
+                {socialLinks.map((social) => (
+                  <a 
+                    key={social.name} 
+                    href={social.href} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-white/40 hover:text-white hover:bg-blue-600 transition-all duration-500"
+                  >
+                    <social.icon className="h-5 w-5" />
+                  </a>
+                ))}
               </div>
             </motion.div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </>

@@ -1,13 +1,9 @@
-// src/pages/Favorites.tsx
-
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useEffect } from 'react'; // Agregamos useEffect
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-// Se mantienen los iconos
-import { HeartCrack, X, ArrowRight, Heart, Gauge, Calendar } from 'lucide-react'; 
+import { HeartCrack, X, ArrowRight, Heart, Gauge, Calendar, Loader2 } from 'lucide-react'; 
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion'; 
-// Se mantiene el Navbar (asume modo oscuro)
+import { motion, AnimatePresence } from 'framer-motion'; 
 import Navbar from '@/components/ui/navbar'; 
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,8 +16,6 @@ type CarRow = Database['public']['Tables']['cars']['Row'];
 
 export type Car = CarRow & {
   car_images: CarImageRow[] | null;
-  agency: string | null;      
-  agency_phone: string | null; 
 };
 
 export type FavoriteCar = {
@@ -29,290 +23,172 @@ export type FavoriteCar = {
   car: Car; 
 };
 
-// VARIANTES DE ANIMACIÓN
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1, 
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20, scale: 0.95 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: "easeOut" } },
-};
-// =======================================================
-
-// Nota: Puedes crear un componente de Esqueleto para mejor UX:
-// const SkeletonCard = () => (
-//     <div className="bg-white rounded-xl shadow-lg h-80 animate-pulse border border-gray-100"></div>
-// );
-
-
 const Favorites = () => {
   const { session } = useAuth();
   const userId = session?.user.id;
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const { data: favorites, isLoading, isError, refetch } = useQuery<FavoriteCar[]>({
+  const primaryColor = '#199dcc';
+  const hoverColor = '#1583b3';
+
+  // --- ARREGLO PARA CARGA INSTANTÁNEA AL ENTRAR ---
+  useEffect(() => {
+    if (userId) {
+      // Esto borra la versión "vieja" y pide la nueva a Supabase al momento de entrar
+      queryClient.invalidateQueries({ queryKey: ['userFavorites', userId] });
+    }
+  }, [userId, queryClient]);
+  // -----------------------------------------------
+
+  // 1. QUERY DE FAVORITOS
+  const { data: favorites, isLoading, isError } = useQuery<FavoriteCar[]>({
     queryKey: ['userFavorites', userId],
     enabled: !!userId,
-    // ===================================================
-    // ✨ OPTIMIZACIÓN UX: CARGA INSTANTÁNEA DESDE CACHÉ
-    // ===================================================
-    staleTime: 1000 * 60 * 5, // Muestra datos de caché durante 5 minutos
-    placeholderData: (previousData) => previousData, // Evita que la pantalla se quede en blanco
-    // ===================================================
-
+    staleTime: 1000 * 60 * 5, 
     queryFn: async () => {
-      if (!userId) throw new Error("El usuario no está autenticado.");
-
       const { data, error } = await supabase
         .from('favorites')
-        // ===================================================
-        // 🚀 OPTIMIZACIÓN DE RENDIMIENTO: CONSULTA LIGERA
-        // ===================================================
-        // SOLO seleccionamos los campos necesarios para la tarjeta
         .select(`
             id, 
             car:car_id (
-                id, 
-                brand, 
-                model, 
-                year, 
-                mileage, 
-                price,
-                car_images (
-                    image_url 
-                )
+                id, brand, model, year, mileage, price,
+                car_images (image_url)
             )
         `)
-        // ===================================================
         .eq('user_id', userId)
         .order('created_at', { ascending: false }); 
 
       if (error) throw error;
-
       return data
         .filter(item => item.car !== null)
-        .map(item => ({ id: item.id, car: item.car as Car }));
-    },
-    onError: () => {
-      toast.error("Error al cargar favoritos", { 
-        description: "No se pudieron obtener los datos. Verifique su conexión." 
-      });
+        .map(item => ({ id: item.id, car: item.car as unknown as Car }));
     }
   });
 
+  // 2. FUNCIÓN DE ELIMINACIÓN OPTIMISTA
   const removeFavorite = async (favoriteId: string) => {
-    const { error } = await supabase.from('favorites').delete().eq('id', favoriteId);
-    if (error) toast.error("Error al quitar de favoritos", { description: error.message });
-    else { toast.success("Auto quitado de favoritos"); refetch(); }
+    const previousFavorites = queryClient.getQueryData<FavoriteCar[]>(['userFavorites', userId]);
+
+    queryClient.setQueryData<FavoriteCar[]>(['userFavorites', userId], (old) => 
+      old?.filter(fav => fav.id !== favoriteId)
+    );
+
+    toast.success("Eliminado de favoritos");
+
+    const { error } = await supabase
+      .from('favorites')
+      .delete()
+      .eq('id', favoriteId);
+
+    if (error) {
+      queryClient.setQueryData(['userFavorites', userId], previousFavorites);
+      toast.error("No se pudo eliminar", { description: error.message });
+    }
   };
 
   const formatPrice = (price: number) => price.toLocaleString('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 0 });
 
-  const primaryColor = '#199dcc'; // Azul
-  const hoverColor = '#1583b3'; // Un poco más oscuro para el hover
-  
   return (
-    // Fondo negro sólido inicial para evitar "flash"
-    <div className="min-h-screen relative bg-black"> 
-      
-      {/* Navbar: Sin prop de tema, asume modo oscuro/texto blanco por el fondo */}
+    <div className="min-h-screen relative bg-black text-white"> 
       <Navbar /> 
 
-      {/* 1. VIDEO DE FONDO - Fijo y responsivo */}
       <div className="fixed inset-0 -z-10 w-full h-full overflow-hidden">
-        <video
-          // Opacidad 20% para que no opaque el contenido
-          className="w-full h-full object-cover opacity-20 bg-gray-900" 
-          autoPlay
-          loop
-          muted
-          playsInline
-        >
+        <video className="w-full h-full object-cover opacity-30" autoPlay loop muted playsInline>
           <source src="/autospace_video_hero.mp4" type="video/mp4" />
         </video>
       </div>
-
-      {/* 2. CAPA OSCURA SEMI-TRANSPARENTE (para asegurar el contraste del texto) */}
       <div className="absolute inset-0 bg-black/60 -z-10"></div>
 
-
-      {/* CONTENEDOR PRINCIPAL */}
-      <div className="container mx-auto py-12 md:py-16 relative z-10">
+      <div className="container mx-auto py-12 md:py-16 relative z-10 px-6">
         
-        {/* ENCABEZADO: Título BLANCO para contrastar con el fondo */}
-        <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full mb-10 md:mb-12 pt-10"
-        >
-            <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-2 tracking-tight">
-                Mis Favoritos
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="mb-12 pt-10">
+            <h1 className="text-5xl font-black italic tracking-tighter uppercase mb-2">
+                Mis <span className="text-blue-500">Favoritos.</span>
             </h1>
-            <p className="text-gray-300 text-lg flex items-center">
-                Vehículos guardados para revisión <Heart className="h-5 w-5 ml-2" style={{ color: primaryColor }} />
+            <p className="text-gray-400 text-sm font-bold uppercase tracking-widest flex items-center">
+                Tu selección premium <Heart className="h-4 w-4 ml-2 fill-blue-500 text-blue-500" />
             </p>
-            <div className="w-20 h-1 mt-4 rounded-full" style={{ backgroundColor: primaryColor }}></div>
         </motion.div>
 
-        {/* --- MANEJO DE ESTADOS --- */}
-        {(!userId || isLoading || isError || favorites?.length === 0) && (
-            <div className="flex justify-center items-center min-h-[40vh] py-10">
-                
-                <motion.div 
-                    initial={{ scale: 0.9 }}
-                    animate={{ scale: 1 }}
-                    className="text-center p-10 bg-white shadow-2xl rounded-xl border border-gray-200 w-full max-w-lg"
-                >
-                    {/* Contenido de estados (se mantiene legible sobre el fondo blanco) */}
-                    {!userId && !isLoading && (
-                        <>
-                            <p className="text-xl font-semibold mb-4 text-gray-700">Por favor, inicie sesión para acceder a su lista de favoritos.</p>
-                            <Button 
-                                onClick={() => navigate('/auth')} 
-                                className="text-white"
-                                style={{ backgroundColor: primaryColor }}
-                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = hoverColor}
-                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = primaryColor}
-                            >
-                                Iniciar Sesión
-                            </Button>
-                        </>
-                    )}
-
-                    {/* Mostrar Esqueletos aquí si tienes el componente SkeletonCard: */}
-                    {isLoading && userId && (
-                        <p className="text-xl text-gray-600">Cargando la lista de vehículos...</p>
-                        /* Opcional: Reemplazar el párrafo de arriba con el grid de esqueletos: */
-                        /* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                            <SkeletonCard />
-                            <SkeletonCard />
-                            <SkeletonCard />
-                        </div>
-                        */
-                    )}
-                    
-                    {isError && userId && (
-                        <p className="text-xl text-red-600">No se pudo cargar su información. Por favor, intente de nuevo.</p>
-                    )}
-                    {!isLoading && !isError && favorites?.length === 0 && userId && (
-                        <>
-                            <HeartCrack className="h-16 w-16 mx-auto mb-4" style={{ color: primaryColor }} />
-                            <p className="text-xl font-semibold mb-3 text-gray-700">No tiene vehículos guardados.</p>
-                            <Button 
-                                onClick={() => navigate('/catalog')} 
-                                variant="default"
-                                className="text-white"
-                                style={{ backgroundColor: primaryColor }}
-                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = hoverColor}
-                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = primaryColor}
-                            >
-                                Explorar Catálogo <ArrowRight className="ml-2 h-4 w-4" />
-                            </Button>
-                        </>
-                    )}
-                </motion.div>
-            </div>
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="h-12 w-12 text-blue-500 animate-spin mb-4" />
+            <p className="font-bold tracking-widest text-xs uppercase text-gray-500">Cargando inventario...</p>
+          </div>
         )}
-        {/* --- FIN MANEJO DE ESTADOS --- */}
 
+        {!isLoading && favorites?.length === 0 && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 bg-zinc-900/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] max-w-2xl mx-auto">
+                <HeartCrack className="h-16 w-16 mx-auto mb-6 text-zinc-700" />
+                <h2 className="text-2xl font-black uppercase mb-4">Tu lista está vacía</h2>
+                <Button onClick={() => navigate('/catalog')} className="bg-white text-black hover:bg-blue-600 hover:text-white rounded-full px-10 py-6 font-black uppercase tracking-widest text-[10px]">
+                    Explorar Catálogo <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+            </motion.div>
+        )}
 
-        {/* GRID DE AUTOS FAVORITOS */}
-        {favorites && favorites.length > 0 && (
-            <motion.div 
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-            >
-                {favorites.map((fav) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <AnimatePresence mode='popLayout'>
+                {favorites?.map((fav) => (
                     <motion.div 
-                        key={fav.car.id}
-                        variants={itemVariants}
-                        // Tarjeta: Fondo BLANCO sólido para legibilidad
-                        className="relative bg-white rounded-xl shadow-xl border border-gray-100 transition duration-300 hover:shadow-2xl hover:translate-y-[-4px] cursor-pointer flex flex-col overflow-hidden"
-                        onClick={() => navigate(`/car/${fav.car.id}`)} 
+                        key={fav.id}
+                        layout
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.2 } }}
+                        className="group relative bg-white rounded-[2rem] overflow-hidden shadow-2xl flex flex-col h-full"
                     >
-                        
-                        {/* Botón de Quitar */}
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                                e.stopPropagation(); 
-                                removeFavorite(fav.id);
-                            }}
-                            className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/80 border border-gray-300 text-gray-600 hover:bg-red-500 hover:text-white transition-colors duration-200"
+                        <button
+                            onClick={(e) => { e.stopPropagation(); removeFavorite(fav.id); }}
+                            className="absolute top-4 right-4 z-30 p-2 rounded-full bg-black/50 backdrop-blur-md text-white hover:bg-red-600 transition-all duration-300"
                         >
-                            <X className="h-5 w-5" />
-                        </Button>
+                            <X className="h-4 w-4" />
+                        </button>
 
-                        {/* IMAGEN: Ahora en color */}
-                        {fav.car.car_images?.[0]?.image_url && (
-                            <div className="mb-0 overflow-hidden">
-                                <img 
-                                    src={fav.car.car_images[0].image_url}
-                                    alt={`${fav.car.brand} ${fav.car.model}`}
-                                    className="w-full h-48 object-cover transition-transform duration-500 hover:scale-[1.08] group-hover:scale-[1.08]" 
-                                />
-                                <div className="absolute inset-0 h-48 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
-                            </div>
-                        )}
+                        <div className="relative h-56 overflow-hidden cursor-pointer" onClick={() => navigate(`/car/${fav.car.id}`)}>
+                            <img 
+                                src={fav.car.car_images?.[0]?.image_url || '/placeholder.png'}
+                                alt={fav.car.model}
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        </div>
 
-                        {/* DETALLES */}
-                        <div className="flex flex-col flex-grow p-5">
-                            {/* Título y Modelo más destacado - Texto oscuro sobre fondo blanco */}
-                            <h2 
-                                className="text-2xl font-extrabold tracking-tight text-gray-900 truncate"
-                            >
+                        <div className="p-6 flex flex-col flex-grow text-gray-900">
+                            <h2 className="text-2xl font-black tracking-tighter uppercase italic truncate">
                                 {fav.car.brand} {fav.car.model}
                             </h2>
-                            <p className="text-base font-semibold text-gray-500 mb-4">
-                                {fav.car.year}
-                            </p>
+                            <span className="text-blue-600 font-bold text-xs tracking-[0.2em] mb-4">{fav.car.year}</span>
                             
-                            {/* Detalles con iconos */}
-                            <div className="space-y-2 text-gray-700">
-                                <div className="flex items-center text-sm">
-                                    <Gauge className="h-4 w-4 mr-2" style={{ color: primaryColor }} />
-                                    <span>{fav.car.mileage?.toLocaleString('es-MX')} km</span>
+                            <div className="grid grid-cols-2 gap-4 mb-6">
+                                <div className="flex items-center text-[10px] font-black uppercase text-gray-400">
+                                    <Gauge className="h-3 w-3 mr-2 text-blue-500" />
+                                    {fav.car.mileage?.toLocaleString()} KM
                                 </div>
-                                <div className="flex items-center text-sm">
-                                    <Calendar className="h-4 w-4 mr-2" style={{ color: primaryColor }} />
-                                    <span>Modelo: {fav.car.year}</span>
+                                <div className="flex items-center text-[10px] font-black uppercase text-gray-400">
+                                    <Calendar className="h-3 w-3 mr-2 text-blue-500" />
+                                    {fav.car.year}
                                 </div>
                             </div>
                             
-                            <div className="mt-4 pt-4 border-t border-gray-100 flex items-end justify-between">
-                                <p 
-                                    className="text-3xl font-extrabold"
-                                    style={{ color: primaryColor }} // Precio en azul
-                                >
+                            <div className="mt-auto pt-6 border-t border-gray-100 flex items-center justify-between">
+                                <p className="text-2xl font-black tracking-tighter">
                                     {formatPrice(fav.car.price)}
                                 </p>
-
-                                {/* Botón de Detalles con ícono */}
-                                <div className="">
-                                    <Button 
-                                        variant="ghost"
-                                        className="text-white flex items-center font-semibold"
-                                        style={{ color: primaryColor }}
-                                    >
-                                        Ver Detalles <ArrowRight className="ml-2 h-4 w-4" />
-                                    </Button>
-                                </div>
+                                <Button 
+                                    onClick={() => navigate(`/car/${fav.car.id}`)}
+                                    variant="ghost"
+                                    className="p-0 hover:bg-transparent text-blue-600 font-black uppercase text-[10px] tracking-widest group/btn"
+                                >
+                                    Detalles <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover/btn:translate-x-1" />
+                                </Button>
                             </div>
                         </div>
                     </motion.div>
                 ))}
-            </motion.div>
-        )}
+            </AnimatePresence>
+        </div>
       </div>
     </div>
   );

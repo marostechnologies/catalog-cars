@@ -4,12 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { motion } from 'framer-motion'; // Añadido para el efecto de entrada
 import {
   Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Loader2, Mail, Lock, User, Phone } from 'lucide-react';
+import { Loader2, Mail, Lock, User, Phone, ArrowLeft } from 'lucide-react';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 
 const Auth = () => {
@@ -22,7 +23,6 @@ const Auth = () => {
   const searchParams = new URLSearchParams(location.search);
   const redirect = searchParams.get('redirect') || '/';
 
-  // --- Lógica de Supabase (sin cambios en funcionalidad) ---
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
@@ -50,19 +50,17 @@ const Auth = () => {
           data: { full_name: fullName, phone }
         }
       });
-
       if (error) {
         if (error.message.includes('already registered')) {
-          toast.error('Este correo ya está registrado. Intenta iniciar sesión.');
+          toast.error('Este correo ya está registrado.');
         } else {
-          toast.error(`Error al registrarse: ${error.message}`);
+          toast.error(`Error: ${error.message}`);
         }
         return;
       }
-
-      toast.success('¡Registro exitoso! Revisa tu correo para confirmar tu cuenta.');
+      toast.success('¡Registro exitoso! Confirma tu correo.');
     } catch (error: any) {
-      toast.error(`Error inesperado: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -73,87 +71,50 @@ const Auth = () => {
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          toast.error('Credenciales incorrectas. Verifica tu email y contraseña.');
-        } else {
-          toast.error(`Error al iniciar sesión: ${error.message}`);
-        }
+        toast.error('Credenciales incorrectas.');
         return;
       }
-      toast.success('¡Bienvenido a JPCars!');
+      toast.success('¡Bienvenido de nuevo!');
       navigate(redirect);
     } catch (error: any) {
-      toast.error(`Error inesperado: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // --- Componentes de Formulario (ajustes de clases) ---
+  // --- Estilos compartidos para Inputs "Mamalones" ---
+  const inputClass = "pl-11 rounded-2xl border-white/10 bg-white/5 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20 transition-all h-12";
+  const labelClass = "text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1";
+
   const LoginForm = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      if (!email || !password) {
-        toast.error('Por favor completa todos los campos');
-        return;
-      }
+      if (!email || !password) { toast.error('Completa los campos'); return; }
       signIn(email, password);
     };
 
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
-          {/* Eliminamos la clase text-gray-100 para un diseño más limpio */}
-          <Label htmlFor="email" className="text-sm font-medium text-gray-200">Correo Electrónico</Label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input
-              id="email"
-              type="email"
-              placeholder="tu@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              // Clases minimalistas: fondo gris oscuro plano, bordes sutiles, foco azul
-              className="pl-10 rounded-lg border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-800 text-white placeholder-gray-400"
-              disabled={isLoading}
-            />
+          <Label htmlFor="email" className={labelClass}>Email de acceso</Label>
+          <div className="relative group">
+            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500 group-focus-within:text-blue-500 transition-colors" />
+            <Input id="email" type="email" placeholder="tu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} disabled={isLoading} />
           </div>
         </div>
-        
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-sm font-medium text-gray-200">Contraseña</Label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              // Clases minimalistas: fondo gris oscuro plano, bordes sutiles, foco azul
-              className="pl-10 rounded-lg border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-800 text-white placeholder-gray-400"
-              disabled={isLoading}
-            />
+          <Label htmlFor="password" className={labelClass}>Contraseña</Label>
+          <div className="relative group">
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500 group-focus-within:text-blue-500 transition-colors" />
+            <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} disabled={isLoading} />
           </div>
         </div>
-
-        <Button
-          type="submit"
-          // Botón con color primario, sombra y animación de hover sutil
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg shadow-blue-600/30 transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.99]"
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Iniciando sesión...
-            </>
-          ) : (
-            'Iniciar Sesión'
-          )}
+        <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-widest text-[11px] h-14 rounded-2xl shadow-xl shadow-blue-600/20 transition-all active:scale-95" disabled={isLoading}>
+          {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Entrar al Garaje'}
         </Button>
       </form>
     );
@@ -167,165 +128,96 @@ const Auth = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      if (!email || !password || !fullName || !phone) {
-        toast.error('Por favor completa todos los campos');
-        return;
-      }
-      if (password.length < 6) {
-        toast.error('La contraseña debe tener al menos 6 caracteres');
-        return;
-      }
+      if (!email || !password || !fullName || !phone) { toast.error('Completa todo'); return; }
       signUp(email, password, fullName, phone);
     };
 
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="fullName" className="text-sm font-medium text-gray-200">Nombre Completo</Label>
-          <div className="relative">
-            <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input
-              id="fullName"
-              type="text"
-              placeholder="Juan Pérez"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="pl-10 rounded-lg border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-800 text-white placeholder-gray-400"
-              disabled={isLoading}
-            />
+          <Label className={labelClass}>Nombre</Label>
+          <div className="relative group">
+            <User className="absolute left-4 h-4 w-4 text-zinc-500 group-focus-within:text-blue-500 top-4" />
+            <Input placeholder="Nombre completo" value={fullName} onChange={(e) => setFullName(e.target.value)} className={inputClass} />
           </div>
         </div>
-
         <div className="space-y-2">
-          <Label htmlFor="phone" className="text-sm font-medium text-gray-200">Teléfono</Label>
-          <div className="relative">
-            <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input
-              id="phone"
-              type="tel"
-              placeholder="+52 555 123 4567"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="pl-10 rounded-lg border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-800 text-white placeholder-gray-400"
-              disabled={isLoading}
-            />
+          <Label className={labelClass}>NÚMERO TELEFONICO</Label>
+          <div className="relative group">
+            <Phone className="absolute left-4 h-4 w-4 text-zinc-500 group-focus-within:text-blue-500 top-4" />
+            <Input placeholder="Tu número" value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} />
           </div>
         </div>
-
         <div className="space-y-2">
-          <Label htmlFor="signup-email" className="text-sm font-medium text-gray-200">Correo Electrónico</Label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input
-              id="signup-email"
-              type="email"
-              placeholder="tu@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 rounded-lg border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-800 text-white placeholder-gray-400"
-              disabled={isLoading}
-            />
+          <Label className={labelClass}>Email</Label>
+          <div className="relative group">
+            <Mail className="absolute left-4 h-4 w-4 text-zinc-500 group-focus-within:text-blue-500 top-4" />
+            <Input type="email" placeholder="tu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />
           </div>
         </div>
-        
         <div className="space-y-2">
-          <Label htmlFor="signup-password" className="text-sm font-medium text-gray-200">Contraseña</Label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input
-              id="signup-password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 rounded-lg border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-800 text-white placeholder-gray-400"
-              disabled={isLoading}
-            />
+          <Label className={labelClass}>Contraseña</Label>
+          <div className="relative group">
+            <Lock className="absolute left-4 h-4 w-4 text-zinc-500 group-focus-within:text-blue-500 top-4" />
+            <Input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} />
           </div>
-          <p className="text-xs text-gray-400">Mínimo 6 caracteres</p>
         </div>
-
-        <Button
-          type="submit"
-          // Botón con color primario, sombra y animación de hover sutil
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg shadow-blue-600/30 transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.99]"
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creando cuenta...
-            </>
-          ) : (
-            'Crear Cuenta'
-          )}
+        <Button type="submit" className="w-full bg-white text-black hover:bg-zinc-200 font-black uppercase tracking-widest text-[11px] h-14 rounded-2xl mt-2 transition-all" disabled={isLoading}>
+          {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Crear Perfil'}
         </Button>
       </form>
     );
   };
-  // --- Fin Componentes de Formulario ---
-  
-  if (user) {
-    navigate(redirect);
-    return null;
-  }
+
+  if (user) { navigate(redirect); return null; }
 
   return (
-    // Contenedor principal: Fondo negro/gris oscuro plano y sutil
-    // Eliminamos el <style jsx global> y la clase animate-gradient para mejor rendimiento y minimalismo.
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-900">
-      <Card 
-        // Tarjeta: Fondo gris oscuro sólido (no transparente), bordes más sutiles y redondeados
-        // Se reduce el redondeo a 'xl' para un aspecto más limpio y moderno.
-        className="w-full max-w-sm sm:max-w-md bg-gray-800 rounded-xl shadow-2xl border border-gray-700 overflow-hidden"
-      >
-        <CardHeader className="text-center p-6 sm:p-8 bg-gray-800 text-white border-b border-gray-700">
-          <div className="flex items-center justify-center mb-2">
-            {/* Si el logo es oscuro, un ligero cambio de estilo puede ayudar */}
-            <img 
-              src="/JPCars_logo.png" 
-              alt="JPCars Logo" 
-              className="h-12 sm:h-14 w-auto drop-shadow-md filter brightness-125" // Ligero filtro para mejorar visibilidad en fondo oscuro
-            />
-          </div>
-          <CardTitle className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">Bienvenido</CardTitle>
-          <CardDescription className="text-gray-400 mt-2">
-            Accede o crea una cuenta para continuar.
-          </CardDescription>
-        </CardHeader>
+    <div className="min-h-screen flex items-center justify-center p-6 bg-black relative">
+      {/* Luces de fondo decorativas */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/10 blur-[120px] rounded-full" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-900/10 blur-[120px] rounded-full" />
 
-        <CardContent className="p-6 sm:p-8">
-          <Tabs defaultValue="login" className="w-full">
-            {/* Lista de pestañas: Diseño más limpio con fondo gris claro y texto resaltado */}
-            <TabsList className="grid w-full grid-cols-2 h-10 bg-gray-700 rounded-lg p-0.5 mb-6 shadow-md">
-              <TabsTrigger
-                value="login"
-                // Estado activo: Color azul primario, con esquinas redondeadas
-                className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:font-semibold data-[state=active]:rounded-[6px] data-[state=active]:transition-all data-[state=active]:duration-300 text-gray-300 hover:text-white rounded-[6px]"
-              >Iniciar Sesión</TabsTrigger>
-              <TabsTrigger
-                value="signup"
-                // Estado activo: Color azul primario, con esquinas redondeadas
-                className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:font-semibold data-[state=active]:rounded-[6px] data-[state=active]:transition-all data-[state=active]:duration-300 text-gray-300 hover:text-white rounded-[6px]"
-              >Registrarse</TabsTrigger>
-            </TabsList>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md z-10">
+        <Card className="bg-zinc-900/50 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border-white/5 overflow-hidden">
+          <CardHeader className="text-center pt-10 pb-6">
+            <div className="flex justify-center mb-6">
+              <img src="/JPCars_logo.png" alt="JPCars" className="h-14 w-auto brightness-150 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
+            </div>
+            <CardTitle className="text-4xl font-black italic tracking-tighter text-white uppercase leading-none">
+              Bienvenido.
+            </CardTitle>
+            <CardDescription className="text-zinc-500 font-bold tracking-[0.2em] text-[10px] uppercase mt-2">
+              Selección de stock exclusiva
+            </CardDescription>
+          </CardHeader>
 
-            <TabsContent value="login" className="space-y-4 mt-4">
-              <LoginForm />
-            </TabsContent>
+          <CardContent className="px-8">
+            <Tabs defaultValue="login" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 h-14 bg-white/5 rounded-2xl p-1 mb-8 border border-white/5">
+                <TabsTrigger value="login" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-xl font-black uppercase text-[10px] tracking-widest transition-all">
+                  Acceso
+                </TabsTrigger>
+                <TabsTrigger value="signup" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-xl font-black uppercase text-[10px] tracking-widest transition-all">
+                  Registro
+                </TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="signup" className="space-y-4 mt-4">
-              <SignUpForm />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
+              <TabsContent value="login" className="mt-0 focus-visible:ring-0 focus-visible:outline-none">
+                <LoginForm />
+              </TabsContent>
+              <TabsContent value="signup" className="mt-0 focus-visible:ring-0 focus-visible:outline-none">
+                <SignUpForm />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
 
-        <CardFooter className="flex flex-col space-y-3 text-center p-6 sm:p-8 bg-gray-800 rounded-b-xl border-t border-gray-700">
-          <Link to="/" className="text-sm text-gray-400 hover:text-blue-500 transition-colors duration-300 font-medium">
-            ← Volver al inicio
-          </Link>
-        </CardFooter>
-      </Card>
+          <CardFooter className="flex flex-col space-y-4 text-center p-10 mt-2 bg-white/[0.02]">
+            <Link to="/" className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 hover:text-blue-500 flex items-center justify-center transition-colors">
+              <ArrowLeft className="mr-2 h-3 w-3" /> Volver al Inicio
+            </Link>
+          </CardFooter>
+        </Card>
+      </motion.div>
     </div>
   );
 };

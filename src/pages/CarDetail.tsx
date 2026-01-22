@@ -1,833 +1,396 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, Phone, MessageCircle, Calendar,
-  Gauge, Fuel, Cog, MapPin, ChevronLeft, ChevronRight, X, Droplet, Store, Heart
+  Gauge, Fuel, Cog, MapPin, ChevronLeft, ChevronRight, X, Droplet, Store, Heart, Info, AlertCircle, Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import Navbar from '@/components/ui/navbar';
 import CarCard from '@/components/ui/car-card';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 import type { Database } from '@/integrations/supabase/types';
 
 // =======================================================
-// 1. ACTUALIZACIÓN DEL TIPO CAR (Añadir 'agency' y 'agency_phone')
+// TYPES & CONFIG
 // =======================================================
 type CarRow = Database['public']['Tables']['cars']['Row'];
 type Car = CarRow & {
-  agency: string | null; // Renombrado de 'sucursal' a 'agency'
-  agency_phone: string | null; // Nueva columna
+  agency: string | null;
+  agency_phone: string | null;
   car_images?: Database['public']['Tables']['car_images']['Row'][];
 };
 
-// =======================================================
-// 2. RENOMBRAR MAPA DE CONTACTO (de sucursalNumbers a agencyNumbers)
-// =======================================================
 const agencyNumbers = {
   'Sucursal Tlalnepantla': {
     phone: '+525529310292',
     whatsapp: '525529310292',
   },
-  // Agrega más agencias aquí si es necesario
+};
+
+const BRUTAL_STYLES = {
+  title: "font-black italic tracking-tighter uppercase leading-[0.85]",
+  label: "font-bold text-[10px] tracking-widest uppercase text-zinc-400",
+  container: "rounded-[24px] md:rounded-[32px] bg-zinc-50 border-none",
+  input: "h-14 rounded-2xl border-2 border-zinc-100 focus:border-black transition-all font-bold",
 };
 
 const CarDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { session } = useAuth();
+  const userId = session?.user.id;
+
   const [car, setCar] = useState<Car | null>(null);
   const [relatedCars, setRelatedCars] = useState<Car[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [contactOpen, setContactOpen] = useState(false);
   const [isCallModalOpen, setIsCallModalOpen] = useState(false);
   const [simulationOpen, setSimulationOpen] = useState(false);
+  
   const [downPayment, setDownPayment] = useState<number | ''>(0);
-  const [months, setMonths] = useState<number | ''>(0);
+  const [months, setMonths] = useState<number | ''>(36);
   const [monthlyPayment, setMonthlyPayment] = useState<number | null>(null);
   const [interestRate, setInterestRate] = useState<number | null>(null);
+  
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [currentViewedImageIndex, setCurrentViewedImageIndex] = useState(0);
-
-  // ESTADO ELIMINADO: Ya no es necesario
-  // const [isFavorite, setIsFavorite] = useState(false); 
-  const [userContact, setUserContact] = useState({ name: '', email: '', phone: '', message: '' });
-
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteId, setFavoriteId] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
       fetchCarDetails(id);
+      if (userId) checkFavoriteStatus(id);
     }
-  }, [id]);
+  }, [id, userId]);
 
   useEffect(() => {
     if (car && downPayment !== '' && months !== '') {
       calculateMonthlyPayment();
     } else {
       setMonthlyPayment(null);
-      setInterestRate(null);
     }
   }, [downPayment, months, car]);
-
 
   const fetchCarDetails = async (carId: string) => {
     try {
       setLoading(true);
       const { data: carData, error: carError } = await supabase
         .from('cars')
-        .select(`
-          *,
-          car_images:car_images(*)
-        `)
+        .select(`*, car_images:car_images(*)`)
         .eq('id', carId)
         .single();
 
-      if (carError) {
-        throw carError;
-      }
+      if (carError) throw carError;
 
       if (carData) {
-        // La consulta trae agency y agency_phone automáticamente debido al '*'
         const formattedCar = {
           ...carData,
           car_images: (carData.car_images as any) || [],
         };
         setCar(formattedCar as unknown as Car);
         fetchRelatedCars(formattedCar.brand);
-        setDownPayment(formattedCar.price * 0.3); // Enganche inicial del 30%
-        setMonths(36); // Plazo inicial
+        setDownPayment(formattedCar.price * 0.3);
       }
     } catch (error) {
-      console.error('Error al cargar los detalles del vehículo:', error);
-      toast.error('Error al cargar los detalles del vehículo.');
+      console.error(error);
+      toast.error('Error al cargar el vehículo');
     } finally {
       setLoading(false);
     }
   };
 
   const fetchRelatedCars = async (brand: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('cars')
-        .select(`
-          *,
-          car_images:car_images(*)
-        `)
-        .eq('brand', brand)
-        .neq('id', id)
-        .limit(3);
+    const { data } = await supabase
+      .from('cars')
+      .select(`*, car_images:car_images(*)`)
+      .eq('brand', brand)
+      .neq('id', id)
+      .limit(3);
+    if (data) setRelatedCars(data as unknown as Car[]);
+  };
 
-      if (error) {
-        throw error;
-      }
-
-      setRelatedCars(data as unknown as Car[]);
-    } catch (error) {
-      console.error('Error al cargar vehículos relacionados:', error);
+  const checkFavoriteStatus = async (carId: string) => {
+    const { data } = await supabase
+      .from('favorites')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('car_id', carId)
+      .maybeSingle();
+    
+    if (data) {
+      setIsFavorite(true);
+      setFavoriteId(data.id);
+    } else {
+      setIsFavorite(false);
+      setFavoriteId(null);
     }
   };
 
+  const toggleFavorite = async () => {
+    if (!userId) {
+      toast.error("Inicia sesión para guardar favoritos");
+      return navigate('/auth');
+    }
+
+    if (isFavorite && favoriteId) {
+      const { error } = await supabase.from('favorites').delete().eq('id', favoriteId);
+      if (!error) {
+        setIsFavorite(false);
+        setFavoriteId(null);
+        toast.success("Quitado de favoritos");
+      }
+    } else {
+      const { data, error } = await supabase
+        .from('favorites')
+        .insert([{ user_id: userId, car_id: id }])
+        .select()
+        .single();
+      if (!error && data) {
+        setIsFavorite(true);
+        setFavoriteId(data.id);
+        toast.success("Añadido a favoritos");
+      }
+    }
+  };
+
+  const formatWithCommas = (value: number | '') => {
+    if (value === '') return '';
+    return value.toLocaleString('en-US');
+  };
+
+  const handleDownPaymentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/,/g, '');
+    if (rawValue === '') {
+      setDownPayment('');
+      return;
+    }
+    if (/^\d*$/.test(rawValue)) {
+      setDownPayment(Number(rawValue));
+    }
+  };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-MX', {
-      style: 'currency',
-      currency: 'MXN',
-      minimumFractionDigits: 0,
-    }).format(price);
+    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 0 }).format(price);
   };
 
-  const formatMileage = (mileage?: number) => {
-    if (!mileage) return 'N/A';
-    return new Intl.NumberFormat('es-MX').format(mileage) + ' km';
-  };
-
-  const handleContact = () => {
-    setContactOpen(true);
-  };
-
-  const handleSimulation = async () => {
-    if (car) {
-      setDownPayment(car.price * 0.3); // Establecer el enganche inicial al 30%
-      setMonths(36); // Establecer el plazo inicial
-      setSimulationOpen(true);
-    }
-  };
-
-  // LÓGICA ELIMINADA: Ya no es necesaria
-  // const handleFavoriteToggle = () => {
-  //   setIsFavorite(!isFavorite);
-  //   toast.success(isFavorite ? 'Quitado de favoritos' : 'Añadido a favoritos');
-  // };
-  
   const calculateMonthlyPayment = () => {
-    if (!car) return;
-    const price = car.price;
-    const down = Number(downPayment);
-    const numMonths = Number(months);
-    
-    // Validación de valores
-    if (down <= 0 || down >= price || numMonths <= 0) {
-      setMonthlyPayment(null);
-      setInterestRate(null);
-      return;
-    }
-  
-    // Lógica de la tasa de interés según el porcentaje de enganche
-    const downPaymentPercentage = (down / price);
-    let annualInterestRate;
-    
-    // Asignación de tasa: 14.99% para 30% o más, 15.99% para menos de 30%
-    if (downPaymentPercentage >= 0.3) {
-      annualInterestRate = 0.1499; // 14.99% anual
-    } else {
-      annualInterestRate = 0.1599; // 15.99% anual
-    }
-    
-    setInterestRate(annualInterestRate);
-
-    const principal = price - down;
-    const monthlyInterestRate = annualInterestRate / 12;
-
-    // Fórmula de anualidad para el pago mensual
-    // M = P [ i(1 + i)^n ] / [ (1 + i)^n – 1]
-    const payment = (principal * monthlyInterestRate) / (1 - Math.pow(1 + monthlyInterestRate, -numMonths));
-    
+    if (!car || downPayment === '') return;
+    const principal = car.price - Number(downPayment);
+    const annualRate = (Number(downPayment) / car.price) >= 0.3 ? 0.1499 : 0.1599;
+    setInterestRate(annualRate);
+    const mRate = annualRate / 12;
+    const payment = (principal * mRate) / (1 - Math.pow(1 + mRate, -Number(months)));
     setMonthlyPayment(payment);
   };
-  
 
-  const handleImageClick = (index: number) => {
-    if (car && car.car_images) {
-      setCurrentViewedImageIndex(index);
-      setImageViewerOpen(true);
-    }
-  };
-
-  const showNextImage = () => {
-    if (car && car.car_images && car.car_images.length > 0) {
-      setCurrentViewedImageIndex((prevIndex) =>
-        prevIndex === car.car_images.length - 1 ? 0 : prevIndex + 1
-      );
-    }
-  };
-
-  const showPrevImage = () => {
-    if (car && car.car_images && car.car_images.length > 0) {
-      setCurrentViewedImageIndex((prevIndex) =>
-        prevIndex === 0 ? car.car_images.length - 1 : prevIndex - 1
-      );
-    }
-  };
-
-  // ==================== FUNCIONES PARA BOTONES DE CONTACTO - INICIO ====================
-  
-  /**
-   * Función de utilidad para obtener y limpiar el número de WhatsApp.
-   */
-  const getCleanWhatsappNumber = () => {
-    let whatsappNumber = null;
-    
-    if (car?.agency_phone) {
-      whatsappNumber = car.agency_phone; 
-    }
-
-    if (!whatsappNumber && car?.agency && agencyNumbers[car.agency]?.whatsapp) {
-      whatsappNumber = agencyNumbers[car.agency].whatsapp;
-    }
-    
-    if (!whatsappNumber) {
-      return null;
-    }
-
-    return whatsappNumber.replace(/\D/g, ''); 
-  };
-
-  /**
-   * Maneja el clic en el botón de WhatsApp.
-   */
-  const handleWhatsApp = () => {
-    const cleanNumber = getCleanWhatsappNumber();
-
-    if (!cleanNumber) {
-      toast.error('Número de WhatsApp no disponible para esta agencia o formato incorrecto.');
+  // NUEVA LÓGICA DE SEGURIDAD PARA EL SIMULADOR
+  const handleOpenSimulator = () => {
+    if (!session) {
+      toast.error("Inicia sesión", {
+        description: "Debes estar registrado para poder realizar una cotización.",
+        icon: <Lock className="h-4 w-4" />
+      });
+      navigate('/auth');
       return;
     }
+    setSimulationOpen(true);
+  };
+
+  const handleRequestFinance = () => {
+    if (!car) return;
+    const phone = car.agency_phone || (car.agency ? (agencyNumbers as any)[car.agency]?.whatsapp : '525529310292');
+    const message = `Hola, me interesa solicitar un plan de financiamiento para este vehículo:
     
-    const message = `Hola, estoy interesado en el auto ${car?.brand} ${car?.model} (${car?.year}) que vi en su sitio web.`;
-    
-    window.open(`https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`, '_blank');
+🚗 *Vehículo:* ${car.brand} ${car.model} (${car.year})
+💰 *Precio:* ${formatPrice(car.price)}
+💵 *Enganche propuesto:* ${downPayment ? formatPrice(Number(downPayment)) : 'No definido'}
+🗓️ *Plazo:* ${months} meses
+📉 *Mensualidad estimada:* ${monthlyPayment ? formatPrice(monthlyPayment) : 'Pendiente de calcular'}
+
+¿Me podrían dar más información sobre los requisitos?`;
+
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/${phone.replace(/\D/g, '')}?text=${encodedMessage}`, '_blank');
   };
 
-  /**
-   * Maneja el clic en el botón de Llamar. (Lógica original)
-   */
-  const handleCall = () => {
-    const phoneNumber = car?.agency_phone || (car?.agency ? agencyNumbers[car.agency]?.phone : null);
-
-    if (!phoneNumber) {
-      toast.error('Número de teléfono no disponible para esta agencia.');
-      return;
-    }
-    setIsCallModalOpen(true); // Abre el modal de confirmación
+  const handleWhatsAppGeneral = () => {
+    const num = car?.agency_phone || (car?.agency ? (agencyNumbers as any)[car.agency]?.whatsapp : '525529310292');
+    window.open(`https://wa.me/${num.replace(/\D/g, '')}?text=Hola, me interesa el ${car?.brand} ${car?.model}`, '_blank');
   };
 
-  const confirmCall = () => {
-    const phoneNumber = car?.agency_phone || (car?.agency ? agencyNumbers[car.agency]?.phone : null);
-    if (phoneNumber) {
-      window.location.href = `tel:${phoneNumber}`;
-      setIsCallModalOpen(false); // Cierra el modal después de iniciar la llamada
-    }
-  };
-
-  /**
-   * Maneja el clic en el botón de Cotización por WhatsApp.
-   */
-  const handleWhatsappQuote = () => {
-    if (!car || !monthlyPayment || downPayment === '' || months === '') {
-      toast.error('Información incompleta para generar la cotización.');
-      return;
-    }
-
-    const cleanNumber = getCleanWhatsappNumber();
-
-    if (!cleanNumber) {
-      toast.error('Número de WhatsApp no disponible para esta agencia o formato incorrecto.');
-      return;
-    }
-
-    const message = `Hola, estoy interesado en el auto ${car.brand} ${car.model} (${car.year}).
-Me gustaría una cotización formal.
----
-**Detalles de la simulación:**
-- Enganche: ${formatPrice(Number(downPayment))}
-- Plazo: ${months} meses
-- Pago mensual estimado: ${formatPrice(monthlyPayment)}
----
-¡Espero su respuesta!`;
-    
-    window.open(`https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`, '_blank');
-  };
-
-  const handleSendContactForm = () => {
-    // Lógica simulada para enviar el formulario de contacto
-    if (!userContact.name || !userContact.email || !userContact.phone) {
-      toast.error('Por favor, completa los campos de nombre, email y teléfono.');
-      return;
-    }
-
-    // Aquí iría la lógica real de envío a la API o base de datos.
-    console.log('Formulario de contacto enviado:', userContact);
-    toast.success('Solicitud de información enviada correctamente.');
-
-    // Limpiar formulario y cerrar modal si fuera el caso
-    setUserContact({ name: '', email: '', phone: '', message: '' });
-  };
-  // ==================== FIN FUNCIONES PARA BOTONES DE CONTACTO ====================
-
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="pt-20 container px-4">
-          <div className="animate-pulse">
-            <div className="h-8 bg-muted rounded w-64 mb-8"></div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="h-96 bg-muted rounded"></div>
-              <div className="space-y-4">
-                <div className="h-8 bg-muted rounded w-3/4"></div>
-                <div className="h-4 bg-muted rounded w-1/2"></div>
-                <div className="h-32 bg-muted rounded"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!car) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="pt-20 container px-4 text-center">
-          <h1 className="text-2xl font-bold mb-4">Vehículo no encontrado</h1>
-          <Button onClick={() => navigate('/catalog')}>Volver al catálogo</Button>
-        </div>
-      </div>
-    );
-  }
+  if (loading || !car) return <div className="min-h-screen bg-white" />;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white font-sans selection:bg-black selection:text-white overflow-x-hidden">
       <Navbar />
-      <div className="pt-20 container px-4 pb-12">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="mb-6"
-        >
-          <Button variant="ghost" onClick={() => navigate(-1)} className="glow-effect">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver
+
+      <main className="pt-20 md:pt-28 container px-4 lg:px-12 pb-24 mx-auto">
+        {/* NAVEGACIÓN RESPONSIVE */}
+        <div className="flex justify-between items-center mb-6 md:mb-10">
+          <Button variant="ghost" onClick={() => navigate(-1)} className="rounded-full font-bold uppercase tracking-widest text-[9px] md:text-[10px] h-9 px-3 hover:bg-zinc-100">
+            <ArrowLeft className="h-3 w-3 mr-1.5" /> Volver
           </Button>
-        </motion.div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="space-y-4"
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleFavorite}
+            className={`rounded-full h-10 w-10 md:h-12 md:w-12 border-2 transition-all ${isFavorite ? 'bg-red-50 border-red-500 text-red-500' : 'border-zinc-200 text-zinc-400 hover:border-black hover:text-black'}`}
           >
-            <div
-              className="relative overflow-hidden rounded-lg bg-muted cursor-pointer"
-              onClick={() => handleImageClick(currentImageIndex)}
+            <Heart className={`h-5 w-5 md:h-6 md:w-6 ${isFavorite ? 'fill-current' : ''}`} />
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16">
+          {/* GALERÍA RESPONSIVE */}
+          <div className="lg:col-span-7 space-y-4 md:space-y-6">
+            <div 
+              className="relative aspect-[4/3] md:aspect-[16/10] bg-zinc-100 rounded-[30px] md:rounded-[40px] overflow-hidden group cursor-zoom-in shadow-xl"
+              onClick={() => { setCurrentViewedImageIndex(currentImageIndex); setImageViewerOpen(true); }}
             >
-              <img
-                src={car.car_images?.[currentImageIndex]?.image_url || '/api/placeholder/800/600'}
-                alt={`${car.brand} ${car.model}`}
-                className="w-full h-96 object-cover"
-              />
-
-              <Button
-                variant="secondary"
-                size="icon"
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 rounded-full"
-                onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(prev =>
-                  car.car_images && prev === 0 ? car.car_images.length - 1 : prev - 1
-                )}}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="secondary"
-                size="icon"
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 rounded-full"
-                onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(prev =>
-                  car.car_images && prev === car.car_images.length - 1 ? 0 : prev + 1
-                )}}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                {car.car_images?.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(index); }}
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      index === currentImageIndex ? 'bg-primary w-6' : 'bg-white/50'
-                    }`}
-                  />
-                ))}
-              </div>
+              <img src={car.car_images?.[currentImageIndex]?.image_url || '/api/placeholder/800/600'} className="w-full h-full object-cover transition-transform duration-1000 md:group-hover:scale-105" />
             </div>
-
-            <div className="grid grid-cols-4 gap-2">
-              {car.car_images?.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentImageIndex(index)}
-                  className={`relative overflow-hidden rounded border-2 transition-all ${
-                    index === currentImageIndex ? 'border-primary' : 'border-transparent'
-                  }`}
-                >
-                  <img
-                    src={image.image_url}
-                    alt={`Vista ${index + 1}`}
-                    className="w-full h-16 object-cover hover:scale-105 transition-transform"
-                  />
+            <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar md:grid md:grid-cols-5 md:gap-4">
+              {car.car_images?.map((img, i) => (
+                <button key={i} onClick={() => setCurrentImageIndex(i)} className={`relative flex-shrink-0 w-20 h-20 md:w-full md:h-full md:aspect-square rounded-2xl md:rounded-3xl overflow-hidden border-2 transition-all ${i === currentImageIndex ? 'border-black scale-95 shadow-xl' : 'border-transparent opacity-50'}`}>
+                  <img src={img.image_url} className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-6"
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <h1 className="text-3xl font-bold text-foreground">
-                  {car.brand} {car.model}
-                </h1>
-                <p className="text-lg text-muted-foreground">{car.year}</p>
+          {/* INFO RESPONSIVE */}
+          <div className="lg:col-span-5 space-y-8 md:space-y-10">
+            <header className="space-y-3">
+              <div className="flex flex-wrap gap-2">
+                <Badge className="rounded-full bg-black text-white px-3 md:px-4 py-1 text-[9px] md:text-[10px] font-bold tracking-widest uppercase">{car.condition}</Badge>
+                {car.agency && <Badge variant="outline" className="rounded-full border-zinc-200 text-zinc-500 px-3 md:px-4 py-1 text-[9px] md:text-[10px] font-bold tracking-widest uppercase italic"><Store className="h-3 w-3 mr-1" /> {car.agency}</Badge>}
               </div>
-              
-              {/* === BOTÓN DE FAVORITO ELIMINADO === */}
-              {/* Se eliminó el siguiente bloque de código:
-              <Button
-                variant="outline"
-                size="icon"
-                className="flex-shrink-0"
-                onClick={handleFavoriteToggle}
-              >
-                <Heart 
-                  className={`h-6 w-6 transition-colors ${
-                    isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground hover:text-red-500'
-                  }`} 
-                />
-              </Button>
-              */}
-              {/* === FIN BOTÓN DE FAVORITO ELIMINADO === */}
-              
-            </div> 
+              <h1 className={`${BRUTAL_STYLES.title} text-5xl md:text-8xl`}>{car.brand} <br /><span className="text-zinc-200">{car.model}</span></h1>
+              <p className="text-3xl md:text-4xl font-black tracking-tighter italic pt-2">{formatPrice(car.price)}</p>
+            </header>
 
-            <div className="flex items-center space-x-4">
-              <div className="text-3xl font-bold text-primary">
-                {formatPrice(car.price)}
-              </div>
-              <Badge className="capitalize">
-                {car.condition}
-              </Badge>
+            {/* GRID SPECS MINIMALISTA */}
+            <div className="grid grid-cols-2 gap-px bg-zinc-200 border border-zinc-200 rounded-[28px] md:rounded-[32px] overflow-hidden shadow-2xl">
+              {[
+                { icon: Gauge, label: "KM", val: car.mileage?.toLocaleString() },
+                { icon: Calendar, label: "Año", val: car.year },
+                { icon: Cog, label: "Transmisión", val: car.transmission },
+                { icon: Fuel, label: "Motor", val: car.fuel_type },
+              ].map((item, idx) => (
+                <div key={idx} className="bg-zinc-50 p-4 md:p-6 hover:bg-white transition-colors">
+                  <item.icon className="h-4 w-4 mb-2 text-zinc-400" />
+                  <p className={BRUTAL_STYLES.label}>{item.label}</p>
+                  <p className="font-black uppercase text-xs md:text-sm italic truncate">{item.val}</p>
+                </div>
+              ))}
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Especificaciones</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-primary" />
-                    <span className="text-sm">Año: {car.year}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Gauge className="h-4 w-4 text-primary" />
-                    <span className="text-sm">Kilometraje: {formatMileage(car.mileage)}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Fuel className="h-4 w-4 text-primary" />
-                    <span className="text-sm capitalize">Combustible: {car.fuel_type}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Cog className="h-4 w-4 text-primary" />
-                    <span className="text-sm capitalize">Transmisión: {car.transmission}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Droplet className="h-4 w-4 text-primary" />
-                    <span className="text-sm capitalize">Color: {car.color}</span>
-                  </div>
-                  
-                  {/* ============================================== */}
-                  {/* INSERCIÓN DE AGENCY Y AGENCY_PHONE */}
-                  {/* ============================================== */}
-                  {car.agency && (
-                    <div className="flex items-center space-x-2">
-                      <Store className="h-4 w-4 text-primary" /> {/* Icono de tienda/agencia */}
-                      <span className="text-sm">Agencia: {car.agency}</span>
-                    </div>
-                  )}
-
-                  {car.agency_phone && (
-                    <div className="flex items-center space-x-2">
-                      <Phone className="h-4 w-4 text-primary" />
-                      <span className="text-sm">Tel. Agencia: <a href={`tel:${car.agency_phone}`} className="hover:underline">{car.agency_phone}</a></span>
-                    </div>
-                  )}
-                  {/* Fin de inserción */}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Descripción</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground leading-relaxed">
-                  {car.description}
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* BOTÓN DE COTIZADOR - GRIS */}
-            <Button
-              size="lg"
-              className="w-full glow-effect bg-gray-500 hover:bg-gray-600 text-white"
-              onClick={handleSimulation}
-            >
-              Cotizador de Crédito a Meses
-            </Button>
-
-            <div className="grid grid-cols-2 gap-4">
-              {/* BOTÓN DE WHATSAPP - VERDE */}
-              <Button size="lg" className="glow-effect bg-green-500 hover:bg-green-600 text-white" onClick={handleWhatsApp}>
-                <MessageCircle className="h-5 w-5 mr-2" />
-                WhatsApp
-              </Button>
-              {/* BOTÓN DE LLAMAR - ROJO */}
-              <Button size="lg" className="glow-effect bg-red-500 hover:bg-red-600 text-white" onClick={handleCall}>
-                <Phone className="h-5 w-5 mr-2" />
-                Llamar
-              </Button>
+            <div className="space-y-3 md:space-y-4">
+              {/* BOTÓN PROTEGIDO POR handleOpenSimulator */}
+              <Button size="lg" onClick={handleOpenSimulator} className="w-full h-16 md:h-20 rounded-[20px] md:rounded-[24px] bg-zinc-900 hover:bg-black text-white text-lg md:text-xl font-black italic uppercase tracking-tighter">Plan de Financiamiento</Button>
+              <div className="grid grid-cols-2 gap-3">
+                <Button onClick={handleWhatsAppGeneral} className="h-14 md:h-16 rounded-[20px] md:rounded-[24px] bg-[#25D366] text-white hover:opacity-90 font-black italic uppercase tracking-tighter"><MessageCircle className="mr-2 h-5 w-5" /> WhatsApp</Button>
+                <Button onClick={() => setIsCallModalOpen(true)} variant="outline" className="h-14 md:h-16 rounded-[20px] md:rounded-[24px] border-2 border-black font-black italic uppercase tracking-tighter hover:bg-zinc-50 text-xs md:text-base">Llamar</Button>
+              </div>
             </div>
 
-            <Dialog>
-              <DialogTrigger asChild>
-                {/*<Button variant="secondary" size="lg" className="w-full glow-effect">
-                  Solicitar Información
-                </Button>*/}
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Solicitar Información</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">Nombre completo</Label>
-                    <Input 
-                        id="name" 
-                        placeholder="Tu nombre" 
-                        value={userContact.name}
-                        onChange={(e) => setUserContact(prev => ({ ...prev, name: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email</Label>
-                    <Input 
-                        id="email" 
-                        type="email" 
-                        placeholder="tu@email.com" 
-                        value={userContact.email}
-                        onChange={(e) => setUserContact(prev => ({ ...prev, email: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="phone">Teléfono</Label>
-                    <Input 
-                        id="phone" 
-                        placeholder="555-123-4567" 
-                        value={userContact.phone}
-                        onChange={(e) => setUserContact(prev => ({ ...prev, phone: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="message">Mensaje</Label>
-                    <Textarea
-                      id="message"
-                      placeholder={`Estoy interesado en el ${car.brand} ${car.model} (${car.year})...`}
-                      rows={4}
-                      value={userContact.message}
-                      onChange={(e) => setUserContact(prev => ({ ...prev, message: e.target.value }))}
-                    />
-                  </div>
-                  <Button className="w-full" onClick={handleSendContactForm}>Enviar Solicitud</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </motion.div>
+            <div className={`${BRUTAL_STYLES.container} p-6 md:p-10`}>
+              <h3 className={`${BRUTAL_STYLES.label} mb-4 text-black border-b border-zinc-200 pb-2 inline-block`}>Descripción</h3>
+              <p className="text-zinc-600 text-sm md:text-base font-medium leading-relaxed first-letter:text-3xl md:first-letter:text-4xl first-letter:font-black first-letter:mr-2 first-letter:float-left first-letter:text-black">{car.description}</p>
+            </div>
+          </div>
         </div>
+      </main>
 
-        {/* Modal de Contacto (Actualizado para usar Agencia) */}
-        <Dialog open={contactOpen} onOpenChange={setContactOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Contacto</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold">Agencias:</h3>
-                <ul className="list-disc list-inside">
-                  <li>Tlalnepantla: {agencyNumbers['Sucursal Tlalnepantla'].phone}</li>
-                  {/*<li>Cancún: {agencyNumbers['Sucursal Cancún'].phone}</li>*/}
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-semibold">Horarios:</h3>
-                <ul className="list-disc list-inside">
-                  <li>Tlalnepantla: Lun - Dom: 10:00 - 18:00</li>
-                  {/*<li>Cancún: Lun - Dom: 10:00 - 18:00</li>*/}
-                </ul>
-              </div>
-              <Button className="w-full" onClick={() => setContactOpen(false)}>Cerrar</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Modal de Simulación de Compra */}
-        <Dialog open={simulationOpen} onOpenChange={setSimulationOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Simular Compra a Meses</DialogTitle>
-              <DialogDescription>
-                Calcula tu pago mensual para este auto.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-semibold text-gray-500">Precio del Auto:</p>
-                  <p className="text-xl font-bold text-primary">{formatPrice(car.price)}</p>
+      {/* SIMULADOR CON AVISO LEGAL */}
+      <Dialog open={simulationOpen} onOpenChange={setSimulationOpen}>
+        <DialogContent className="max-w-[95vw] md:max-w-3xl rounded-[30px] md:rounded-[40px] border-none bg-white p-0 overflow-hidden shadow-2xl">
+          <div className="grid grid-cols-1 md:grid-cols-2">
+            <div className="p-6 md:p-10 space-y-6">
+              <DialogHeader>
+                <p className={BRUTAL_STYLES.label}>Simulador Pro</p>
+                <DialogTitle className={BRUTAL_STYLES.title + " text-3xl md:text-4xl"}>Tu Crédito</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Label className={BRUTAL_STYLES.label}>Enganche Personalizado</Label>
+                  <Input type="text" inputMode="numeric" placeholder="Monto" className={BRUTAL_STYLES.input} value={formatWithCommas(downPayment)} onChange={handleDownPaymentChange} />
                 </div>
-                <div>
-                  {/* Espacio para información adicional */}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="downPayment">Enganche (monto)</Label>
-                  <Input
-                    id="downPayment"
-                    type="number"
-                    value={downPayment}
-                    onChange={(e) => setDownPayment(Number(e.target.value))}
-                    placeholder="Ej. 50000"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="months">Plazo (meses)</Label>
-                  <Input
-                    id="months"
-                    type="number"
-                    value={months}
-                    onChange={(e) => setMonths(Number(e.target.value))}
-                    placeholder="Ej. 12, 24, 36"
-                  />
-                </div>
-              </div>
-              {monthlyPayment !== null && (
-                <div className="p-4 bg-muted rounded-lg mt-4 space-y-3">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-semibold">Pago mensual estimado:</h3>
-                    {interestRate && (
-                      <Badge variant="secondary">
-                        Tasa Anual: {(interestRate * 100).toFixed(2)}%
-                      </Badge>
-                    )}
+                <div className="space-y-2">
+                  <Label className={BRUTAL_STYLES.label}>Plazo (Meses)</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[24, 36, 48].map(m => (
+                      <button key={m} onClick={() => setMonths(m)} className={`h-11 rounded-xl font-bold transition-all ${months === m ? 'bg-black text-white' : 'bg-zinc-100 text-zinc-400 hover:bg-zinc-200 text-xs'}`}>{m}m</button>
+                    ))}
                   </div>
-                  <p className="text-3xl font-bold text-primary">
-                    {formatPrice(monthlyPayment)}
-                  </p>
-
-                  {/* Resumen adicional */}
-                  {(() => {
-                    const financed = car.price - Number(downPayment);
-                    const totalPay = monthlyPayment * Number(months);
-                    const totalInterest = totalPay - financed;
-                    const downPaymentPercentage = (Number(downPayment) / car.price) * 100;
-
-                    return (
-                      <div className="mt-4 space-y-1 text-sm text-muted-foreground">
-                        <p><span className="font-semibold">Porcentaje de enganche:</span> {downPaymentPercentage.toFixed(2)}%</p>
-                        <p><span className="font-semibold">Capital financiado:</span> {formatPrice(financed)}</p>
-                        <p><span className="font-semibold">Intereses estimados:</span> {formatPrice(totalInterest)}</p>
-                        <p><span className="font-semibold">Monto total a pagar:</span> {formatPrice(totalPay + Number(downPayment))}</p>
-                      </div>
-                    );
-                  })()}
-
-                  <p className="text-xs text-muted-foreground mt-3">
-                    Este cálculo es una estimación. Los términos finales pueden variar.
-                  </p>
                 </div>
-              )}
-            </div>
-            <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
-            <Button
-              size="lg"
-              className="w-full sm:w-auto glow-effect bg-green-500 hover:bg-green-600 text-white"
-              onClick={handleWhatsappQuote}
-              disabled={!monthlyPayment || downPayment === '' || months === ''}
-            >
-              <MessageCircle className="h-5 w-5 mr-2" />
-              Cotización personalizada
-            </Button>
-            <Button
-              size="lg" 
-              className="w-full sm:w-auto"
-              onClick={() => setSimulationOpen(false)}
-              variant="secondary"
-            >
-              Cerrar
-            </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
 
-
-        {/* === MODAL DE CONFIRMACIÓN DE LLAMADA (Actualizado para usar Agency) === */}
-        <Dialog open={isCallModalOpen} onOpenChange={setIsCallModalOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>¿Seguro que quieres llamar?</DialogTitle>
-              <DialogDescription>
-                Vas a llamar a la agencia {car?.agency || car?.agency_phone}.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="sm:justify-start">
-              <Button onClick={confirmCall}>Sí, llamar</Button>
-              <Button variant="secondary" onClick={() => setIsCallModalOpen(false)}>Cancelar</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Visor de Imágenes (Lightbox) */}
-        {car && car.car_images && car.car_images.length > 0 && (
-          <Dialog open={imageViewerOpen} onOpenChange={setImageViewerOpen}>
-            <DialogContent className="max-w-full h-full p-0 flex justify-center items-center bg-transparent backdrop-blur-md">
-              <div className="relative w-full h-full flex items-center justify-center">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-4 right-4 z-50 text-white hover:bg-white/20"
-                  onClick={() => setImageViewerOpen(false)}
-                >
-                  <X className="h-6 w-6" />
-                </Button>
-
-                <motion.img
-                  key={currentViewedImageIndex}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.2 }}
-                  src={car.car_images[currentViewedImageIndex]?.image_url}
-                  alt={`Imagen ${currentViewedImageIndex + 1} de ${car.brand} ${car.model}`}
-                  className="max-w-[90vw] max-h-[90vh] object-contain"
-                />
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 z-40 text-white hover:bg-white/20"
-                  onClick={showPrevImage}
-                >
-                  <ChevronLeft className="h-8 w-8" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 z-40 text-white hover:bg-white/20"
-                  onClick={showNextImage}
-                >
-                  <ChevronRight className="h-8 w-8" />
-                </Button>
-
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-40">
-                  {car.car_images.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentViewedImageIndex(index)}
-                      className={`w-3 h-3 rounded-full transition-all ${
-                        index === currentViewedImageIndex ? 'bg-primary w-8' : 'bg-white/50'
-                      }`}
-                    />
-                  ))}
+                {/* MENSAJE DE COTIZACIÓN APROXIMADA */}
+                <div className="flex gap-2 p-3 bg-amber-50 rounded-xl border border-amber-100 mt-4">
+                  <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                  <p className="text-[10px] leading-tight text-amber-800 font-medium">
+                    Las cotizaciones son solo **aproximaciones**. Para conocer una cotización precisa y exacta debe contactar a la agencia.
+                  </p>
                 </div>
               </div>
-            </DialogContent>
-          </Dialog>
+            </div>
+
+            <div className="bg-zinc-900 p-6 md:p-10 text-white flex flex-col justify-between min-h-[220px]">
+              <div>
+                <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-1 md:mb-2">Mensualidad Estimada</p>
+                <h3 className="text-4xl md:text-5xl font-black italic tracking-tighter text-white">
+                  {monthlyPayment && downPayment !== '' ? formatPrice(monthlyPayment) : '---'}
+                </h3>
+                <div className="mt-4 flex items-center gap-2 text-zinc-400 text-[9px] font-bold uppercase"><Info className="h-3 w-3" /> Tasa desde {interestRate ? (interestRate * 100).toFixed(2) : '--'}% anual</div>
+              </div>
+              <Button 
+                onClick={handleRequestFinance}
+                className="w-full h-14 rounded-2xl bg-white text-black hover:bg-zinc-200 font-black italic uppercase tracking-tighter mt-6 md:mt-0"
+              >
+                Solicitar Ahora
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* LLAMADA */}
+      <Dialog open={isCallModalOpen} onOpenChange={setIsCallModalOpen}>
+        <DialogContent className="rounded-[30px] md:rounded-[32px] border-none p-8 md:p-12 text-center max-w-[90vw] md:max-w-sm">
+          <div className="w-16 h-16 md:w-20 md:h-20 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-6"><Phone className="h-8 w-8 md:h-10 md:w-10 text-black" /></div>
+          <h2 className={BRUTAL_STYLES.title + " text-xl md:text-2xl mb-2"}>¿Llamar ahora?</h2>
+          <Button onClick={() => window.location.href = `tel:${car.agency_phone || '5529310292'}`} className="w-full h-14 rounded-2xl bg-black text-white font-black italic uppercase tracking-tighter">Llamar a Agencia</Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* LIGHTBOX GALERÍA */}
+      <AnimatePresence>
+        {imageViewerOpen && (
+          <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4">
+            <Button variant="ghost" onClick={() => setImageViewerOpen(false)} className="absolute top-6 right-6 md:top-10 md:right-10 text-white h-12 w-12 md:h-16 md:w-16 rounded-full hover:bg-white/10"><X className="h-8 w-8 md:h-10 md:w-10" /></Button>
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="relative w-full max-w-5xl">
+              <img src={car.car_images?.[currentViewedImageIndex]?.image_url} className="w-full max-h-[65vh] md:max-h-[75vh] object-contain rounded-2xl" />
+              <div className="absolute inset-y-0 -left-16 -right-16 hidden lg:flex items-center justify-between">
+                 <Button variant="ghost" onClick={() => setCurrentViewedImageIndex(prev => prev === 0 ? car.car_images!.length - 1 : prev - 1)} className="text-white hover:bg-white/10 p-2 rounded-full"><ChevronLeft className="h-10 w-10" /></Button>
+                 <Button variant="ghost" onClick={() => setCurrentViewedImageIndex(prev => prev === car.car_images!.length - 1 ? 0 : prev + 1)} className="text-white hover:bg-white/10 p-2 rounded-full"><ChevronRight className="h-10 w-10" /></Button>
+              </div>
+            </motion.div>
+            <div className="flex gap-3 mt-8 md:mt-12 overflow-x-auto pb-4 w-full md:max-w-full px-6 md:px-10 no-scrollbar">
+              {car.car_images?.map((img, i) => (
+                <button key={i} onClick={() => setCurrentViewedImageIndex(i)} className={`h-16 w-24 md:h-20 md:w-32 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all ${i === currentViewedImageIndex ? 'border-white scale-105' : 'border-transparent opacity-30'}`}><img src={img.image_url} className="w-full h-full object-cover" /></button>
+              ))}
+            </div>
+          </div>
         )}
-      </div>
+      </AnimatePresence>
     </div>
   );
 };
