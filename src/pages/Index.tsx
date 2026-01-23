@@ -83,14 +83,14 @@ const Index = () => {
         </div>
       </section>
 
-      {/* --- FOOTER (RESPONSIVE OPTIMIZED) --- */}
+      {/* --- FOOTER ACTUALIZADO CON POWERED BY --- */}
       <footer className="bg-black text-white pt-20 pb-10 border-t border-white/5 font-sans">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-16 mb-16">
 
             {/* Columna 1: Branding */}
             <div className="sm:col-span-2 lg:col-span-4 space-y-6">
-              <img src="/JPCars_logo.png" alt="Logo" className="h-10 w-auto brightness-200" />
+              <img src="/JPCars_logo.png" alt="Logo" className="h-14 w-auto" />
               <p className="text-slate-400 text-sm leading-relaxed max-w-xs font-medium">
                 Redefiniendo la adquisición de vehículos seminuevos bajo estándares de excelencia.
               </p>
@@ -154,7 +154,7 @@ const Index = () => {
               <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white mb-6">Ubicación</h3>
               <div className="rounded-[2rem] overflow-hidden h-40 border border-white/10 grayscale opacity-60 hover:grayscale-0 transition-all duration-700">
                 <iframe 
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3760.360123456789!2d-99.2081234!3d19.5371234!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTnCsDMyJzEzLjYiTiA5OcKwMTInMjkuMiJX!5e0!3m2!1ses!2smx!4v1234567890" 
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3760.366223847953!2d-99.2066847!3d19.5222222!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d21d6046e7f97b%3A0xc31910d9c4917a21!2sCalle%20Agust%C3%ADn%20Melgar%2023%2C%20Ni%C3%B1os%20Heroes%2C%2054040%20Tlalnepantla%20de%20Baz%2C%20M%C3%A9x.!5e0!3m2!1ses-419!2smx!4v1700000000000!5m2!1ses-419!2smx" 
                   width="100%" 
                   height="100%" 
                   style={{ border: 0 }} 
@@ -165,15 +165,30 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Copyright Final */}
-          <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-center">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">
-              © {currentYear} JPCars. All Rights Reserved.
-            </p>
-            <div className="flex gap-8 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">
-              <a href="#" className="hover:text-white transition-colors">Privacidad</a>
-              <a href="#" className="hover:text-white transition-colors">Términos</a>
+          {/* Copyright Final & Powered By */}
+          <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">
+                © {currentYear} JPCars. All Rights Reserved.
+                </p>
+                <div className="flex gap-6 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">
+                {/* <a href="#" className="hover:text-white transition-colors">Privacidad</a>
+                <a href="#" className="hover:text-white transition-colors">Términos</a> */}
+                </div>
             </div>
+
+            {/* SECCIÓN POWERED BY AGREGADA */}
+            <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-white shadow-lg">
+    <div className="text-right leading-none">
+        <p className="text-[8px] text-slate-600 font-bold uppercase tracking-wider">Powered by</p>
+        <p className="text-[10px] text-blue-600 font-black italic">MAROS TECHNOLOGY</p>
+    </div>
+    <img 
+        src="/MAROS_LOGO_SINFONDO.PNG" 
+        alt="Maros Logo" 
+        className="h-7 w-auto object-contain" 
+    />
+</div>
           </div>
         </div>
       </footer>

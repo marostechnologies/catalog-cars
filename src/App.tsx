@@ -14,6 +14,7 @@ import Sucursales from "./pages/Sucursales";
 import AdminCars from "./pages/AdminCars"; 
 // === CAMBIO 1: IMPORTAR EL NUEVO COMPONENTE FAVORITES ===
 import Favorites from "./pages/Favorites"; 
+import Nosotros from "./pages/Nosotros";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,9 @@ const App = () => (
             {/* === CAMBIO 2: AÑADIR LA RUTA /FAVORITES === */}
             <Route path="/favorites" element={<Favorites />} /> 
             
+            {/* === NUEVA RUTA: NOSOTROS === */}
+            <Route path="/nosotros" element={<Nosotros />} /> 
+
             <Route path="/admin" element={<AdminCars />} /> 
             {/* NOTA IMPORTANTE: LA RUTA CATCH-ALL "*" DEBE IR AL FINAL */}
             <Route path="*" element={<NotFound />} />

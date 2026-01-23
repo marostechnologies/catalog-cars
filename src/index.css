@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Autospace Design System - Two-Tone Blue Professional theme */
+/* Autospace Design System - JPCars Blue Edition (#2563eb) */
 
 @layer base {
   :root {
@@ -15,55 +15,39 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 8%;
 
-    /* Primary - Base Blue (#1793c1 -> H:196, S:78%, L:42%) */
-    --primary: 196 78% 42%;
+    /* Primary - Tailwind Blue 600 (#2563eb -> H:221, S:83%, L:53%) */
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 98%;
-    --primary-glow: 196 78% 52%; /* Tono más claro para el efecto glow */
+    --primary-glow: 221 83% 63%; 
 
-    /* Secondary - Dark charcoal for elegance */
+    /* Secondary - Dark charcoal */
     --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 98%;
 
     --muted: 0 0% 95%;
     --muted-foreground: 0 0% 45%;
 
-    --accent: 196 78% 42%; 
+    --accent: 221 83% 53%; 
     --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 84% 60%; /* Se mantiene rojo para alertas */
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 0 0% 90%;
     --input: 0 0% 95%;
-    --ring: 196 78% 42%; /* Anillo del color primario */
+    --ring: 221 83% 53%;
 
-    /* Automotive gradients - Combina el base (1793c1) con el oscuro (1d4f77) */
-    --gradient-primary: linear-gradient(135deg, hsl(196 78% 42%), hsl(209 61% 28%));
-    --gradient-hero: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(196 78% 15%) 100%); 
+    /* Automotive gradients usando el azul 600 */
+    --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(221 83% 33%));
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(221 83% 15%) 100%); 
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(0 0% 96%) 100%);
     
-    /* Automotive shadows - Usa el tono base */
-    --shadow-car: 0 20px 40px -10px hsl(196 78% 42% / 0.25); 
-    --shadow-glow: 0 0 30px hsl(196 78% 42% / 0.3); 
+    /* Automotive shadows basadas en Blue 600 */
+    --shadow-car: 0 20px 40px -10px hsl(221 83% 53% / 0.25); 
+    --shadow-glow: 0 0 30px hsl(221 83% 53% / 0.3); 
     --shadow-subtle: 0 4px 20px hsl(0 0% 0% / 0.08);
 
     --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
@@ -73,97 +57,41 @@
     --card: 0 0% 12%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 12%;
-    --popover-foreground: 0 0% 98%;
-
-    /* Primary - Base Blue (#1793c1) */
-    --primary: 196 78% 42%; 
+    --primary: 221 83% 53%; 
     --primary-foreground: 0 0% 98%;
-    --primary-glow: 196 78% 52%;
+    --primary-glow: 221 83% 63%;
 
-    --secondary: 0 0% 20%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 0 0% 20%;
-    --muted-foreground: 0 0% 65%;
-
-    --accent: 196 78% 42%; 
+    --accent: 221 83% 53%; 
     --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 62% 50%; /* Se mantiene rojo para alertas */
-    --destructive-foreground: 0 0% 98%;
 
     --border: 0 0% 20%;
     --input: 0 0% 20%;
-    --ring: 196 78% 42%; /* Anillo del color primario */
+    --ring: 221 83% 53%;
 
-    /* Dark mode gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(196 78% 42%), hsl(209 61% 28%));
-    --gradient-hero: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(196 78% 15%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(221 83% 33%));
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(221 83% 15%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 12%) 0%, hsl(0 0% 16%) 100%);
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground font-sans antialiased;
-  }
-
-  html {
-    scroll-behavior: smooth;
-  }
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground font-sans antialiased; }
+  html { scroll-behavior: smooth; }
 }
 
 @layer components {
-  /* Automotive animation classes */
-  .car-hover {
-    @apply transition-all duration-500 ease-out hover:scale-105 hover:shadow-2xl;
-  }
-
-  .fade-in-up {
-    @apply opacity-0 translate-y-8 transition-all duration-700 ease-out;
-  }
-
-  .fade-in-up.animate {
-    @apply opacity-100 translate-y-0;
-  }
-
-  .glow-effect {
-    @apply relative overflow-hidden;
-  }
-
+  .car-hover { @apply transition-all duration-500 ease-out hover:scale-105 hover:shadow-2xl; }
+  .fade-in-up { @apply opacity-0 translate-y-8 transition-all duration-700 ease-out; }
+  .fade-in-up.animate { @apply opacity-100 translate-y-0; }
+  .glow-effect { @apply relative overflow-hidden; }
   .glow-effect::before {
     @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full;
     content: '';
     transition: transform 0.6s ease-out;
   }
-
-  .glow-effect:hover::before {
-    @apply translate-x-full;
-  }
-
-  /* Custom scrollbar */
-  .custom-scrollbar::-webkit-scrollbar {
-    @apply w-2;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-muted rounded-full;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-primary rounded-full hover:bg-primary/80;
-  }
+  .glow-effect:hover::before { @apply translate-x-full; }
+  .custom-scrollbar::-webkit-scrollbar { @apply w-2; }
+  .custom-scrollbar::-webkit-scrollbar-track { @apply bg-muted rounded-full; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-primary rounded-full hover:bg-primary/80; }
 }

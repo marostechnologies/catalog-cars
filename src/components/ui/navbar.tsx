@@ -49,6 +49,8 @@ const Navbar = () => {
     { name: 'INICIO', href: '/' },
     { name: 'CATÁLOGO', href: '/catalog' },
     { name: 'SUCURSALES', href: '/sucursales' },
+    { name: 'NOSOTROS', href: '/nosotros' },
+    /*{ name: 'VENDER AUTO', href: '/sell' },*/
   ];
 
   const handleNavigation = (href: string) => {
