@@ -10,7 +10,7 @@ const sucursales = [
     direccion: "Av. Gustavo Baz 123, Tlalnepantla, Edo. de México",
     telefono: "+52 55 2931 0292",
     horario: "Lunes a Sábado: 9:00 AM - 6:00 PM",
-    mapSrc: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3759.5441369325!2d-99.2238!3d19.54!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTnCsDMyJzI0LjAiTiA5OcKwMTMnMjUuNyJX!5e0!3m2!1ses!2smx!4v1625680000000!5m2!1ses!2smx"
+    mapSrc: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3759.5300601649114!2d-99.19995192381113!3d19.56177918174541!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d21d7b10e4288b%3A0xef64360ecc31296c!2sAuto%20Space!5e0!3m2!1ses-419!2smx!4v1769653741140!5m2!1ses-419!2smx"
   }
 ];
 

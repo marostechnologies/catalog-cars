@@ -154,7 +154,7 @@ const Index = () => {
               <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white mb-6">Ubicación</h3>
               <div className="rounded-[2rem] overflow-hidden h-40 border border-white/10 grayscale opacity-60 hover:grayscale-0 transition-all duration-700">
                 <iframe 
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3760.366223847953!2d-99.2066847!3d19.5222222!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d21d6046e7f97b%3A0xc31910d9c4917a21!2sCalle%20Agust%C3%ADn%20Melgar%2023%2C%20Ni%C3%B1os%20Heroes%2C%2054040%20Tlalnepantla%20de%20Baz%2C%20M%C3%A9x.!5e0!3m2!1ses-419!2smx!4v1700000000000!5m2!1ses-419!2smx" 
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3759.5300601649114!2d-99.19995192381113!3d19.56177918174541!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d21d7b10e4288b%3A0xef64360ecc31296c!2sAuto%20Space!5e0!3m2!1ses-419!2smx!4v1769653741140!5m2!1ses-419!2smx"
                   width="100%" 
                   height="100%" 
                   style={{ border: 0 }} 
