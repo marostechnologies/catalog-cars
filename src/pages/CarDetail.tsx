@@ -191,7 +191,8 @@ const CarDetail = () => {
     setMonthlyPayment(payment);
   };
 
-  // NUEVA LÓGICA DE SEGURIDAD PARA EL SIMULADOR
+  /*
+  // PIDE INICIAR SESION EL SIMULADOR
   const handleOpenSimulator = () => {
     if (!session) {
       toast.error("Inicia sesión", {
@@ -201,6 +202,12 @@ const CarDetail = () => {
       navigate('/auth');
       return;
     }
+    setSimulationOpen(true);
+  };
+  */
+
+  // NO PIDE INICIAR SESION EL SIMULADOR
+  const handleOpenSimulator = () => {
     setSimulationOpen(true);
   };
 
